@@ -35,4 +35,12 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
    }
 }
 
+object SparkSqlQueryBenchmark {
+  def main(args: Array[String]) {
+    val b = new SparkSqlQueryBenchmark
+    b.setUp(new BenchmarkConfiguration())
+    b.test(new java.util.HashMap[AnyRef, AnyRef]())
+  }
+}
+
 
