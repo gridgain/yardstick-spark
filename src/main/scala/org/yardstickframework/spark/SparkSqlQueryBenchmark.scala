@@ -14,12 +14,8 @@
 
 package org.yardstickframework.spark
 
-import org.apache.spark._
 import org.yardstickframework._
 
-/**
- * Hazelcast benchmark that performs put and query operations.
- */
 class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
    @throws(classOf[Exception])
    override def setUp(cfg: BenchmarkConfiguration) {
