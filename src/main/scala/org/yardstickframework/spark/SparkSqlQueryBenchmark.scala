@@ -27,7 +27,7 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
    }
 
    @throws(classOf[java.lang.Exception])
-   override def test(ctx: java.util.Map[java.lang.Object, java.lang.Object]) : java.lang.Boolean =  {
+   override def test(ctx: java.util.Map[AnyRef, AnyRef]) : Boolean =  {
       val rdd = sc.parallelize( (0 until 1000).toSeq)
       val mrdd = rdd.sum
       println(s"Is the n*(n+1)/2 formula working? $mrdd")

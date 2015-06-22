@@ -14,6 +14,8 @@
 
 package org.yardstickframework.spark
 
+import java.util
+
 import org.yardstickframework._
 
 import org.apache.spark._
@@ -21,7 +23,8 @@ import org.apache.spark._
 /**
  * Hazelcast benchmark that performs put and query operations.
  */
-class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriverAdapter { 
+//class SparkAbstractBenchmark(cacheName: String) extends TestBenchmarkDriver {
+abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriverAdapter {
    var sc : SparkContext = _
    @throws(classOf[Exception])
    override def setUp(cfg: BenchmarkConfiguration) {
@@ -31,7 +34,6 @@ class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriverAdapter {
 
    @throws(classOf[Exception])
    override def tearDown() {
-     super.setUp(cfg)
      sc.stop
    }
 
