@@ -6,7 +6,7 @@ package com.yardstickframework.util
 import org.slf4j.LoggerFactory
 
 /**
- * Created by ophchu on 2/12/15.
+ * Created by sany.
  */
 //todo rename and add some docs
 //todo EventsMap?
