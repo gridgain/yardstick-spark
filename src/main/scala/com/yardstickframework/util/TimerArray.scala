@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 //todo rename and add some docs
 //todo EventsMap?
 //todo use TimingInfo
+//
 case class TimerEntry(name: String, start: Long, var end: Long = -1) {
   def elapsed = end - start
 }
