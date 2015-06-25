@@ -1,8 +1,9 @@
-package com.yardstickframework.util
+package org.yardstickframework.util
 
 /**
  * Created by sany on 23/6/15.
  */
+
 import org.slf4j.LoggerFactory
 
 /**

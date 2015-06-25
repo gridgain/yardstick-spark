@@ -14,39 +14,33 @@
 
 package org.yardstickframework.spark
 
-import com.yardstickframework.model.Sensor
+import org.apache.spark.storage._
 import org.yardstickframework._
-import com.yardstickframework.util.TimerArray
+import org.yardstickframework.util.{TimerArray, _}
 
 
 class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
 
   val timer = new TimerArray
 
-   @throws(classOf[Exception])
-   override def setUp(cfg: BenchmarkConfiguration) {
-     super.setUp(cfg)
-   }
 
-   @throws(classOf[java.lang.Exception])
-   override def test(ctx: java.util.Map[AnyRef, AnyRef]) : Boolean =  {
-     val rdd = sc.textFile("/home/sany/Downloads/TruckEvents.csv")
-     val runResults = timer("Sensor-Data") {
-       val mrdd = rdd.map(line=>new Sensor(line.split(",")(0).toInt,line.split(",")(1).toInt,line.split(",")(2).toDouble,
-         line.split(",")(3).toDouble,line.split(",")(4).toInt,line.split(",")(5).toInt,line.split(",")(6).toInt,line.split(",")(7).toInt,
-         line.split(",")(8).toInt,line.split(",")(9).toInt))
-       println(mrdd.count())
-     }
-   //  println(s"Runner finished. Got results for ${runResults} features:")
-     //runResults foreach { runner =>
-     //  println(runner.mkString(", "))
-     //}
-    // println(timer.toString("Running time: "))
-   //  runResults
+  @throws(classOf[Exception])
+  override def setUp(cfg: BenchmarkConfiguration) {
+    super.setUp(cfg)
+    val sQLContext = sqlContext
+    val df = new LoadFunctions().loadDataCSVFile(sQLContext, "/home/sany/Downloads/Twitter_Data.csv", "\t")
+    df.registerTempTable("Twitter")
+    df.persist(StorageLevel.MEMORY_ONLY)
+  }
 
-
-      true
-   }
+  @throws(classOf[java.lang.Exception])
+  override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
+    val runResults = timer("Sensor-Data") {
+      val dF = new LoadFunctions().executeQuery(sqlContext, "SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50")
+      new StorageFunctions(dF).savePathMapParquetFile("/home/sany/Downloads/Twitter.pq")
+    }
+    true
+  }
 
 }
 
