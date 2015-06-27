@@ -17,7 +17,7 @@ package org.yardstickframework.spark
 import org.apache.spark.storage._
 import org.yardstickframework._
 import org.yardstickframework.util.{TimerArray, _}
-
+import com.google.common.hash.Hashing
 
 class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
 
@@ -36,8 +36,16 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
   @throws(classOf[java.lang.Exception])
   override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
     val runResults = timer("Sensor-Data") {
-      val dF = new LoadFunctions().executeQuery(sqlContext, "SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50")
-      new StorageFunctions(dF).savePathMapParquetFile("/home/sany/Downloads/Twitter.pq")
+    //  val dF = new LoadFunctions().executeQuery(sqlContext, "SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50")
+      //new StorageFunctions(dF).savePathMapParquetFile("/home/sany/Downloads/Twitter.pq")
+      var hashRecords = false
+      val hashFunction = hashRecords match {
+        case true => Some(Hashing.goodFastHash(math.max(4, 4) * 4))
+        case false => None
+      }
+      val rdd=DataGenerator.createKVStringDataSet(sc, 100, 100, 4,50,
+        4, 2, 8, "memory", "/tmp/", hashFunction)
+      rdd.collect().foreach(println)
     }
     true
   }
@@ -49,6 +57,7 @@ object SparkSqlQueryBenchmark {
     val b = new SparkSqlQueryBenchmark
     b.setUp(new BenchmarkConfiguration())
     b.test(new java.util.HashMap[AnyRef, AnyRef]())
+
   }
 }
 
