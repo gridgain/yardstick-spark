@@ -16,36 +16,46 @@ package org.yardstickframework.spark
 
 import org.apache.spark.storage._
 import org.yardstickframework._
+import org.yardstickframework.impl.BenchmarkLoader
+import org.yardstickframework.spark.util.YamlConfiguration
 import org.yardstickframework.util.{TimerArray, _}
 import com.google.common.hash.Hashing
 
 class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
 
   val timer = new TimerArray
+  var sqlConfig: YamlConfiguration = _
 
 
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration) {
     super.setUp(cfg)
-    val sQLContext = sqlContext
-    val df = new LoadFunctions().loadDataCSVFile(sQLContext, "/home/sany/Downloads/Twitter_Data.csv", "\t")
+    new BenchmarkLoader().initialize(cfg)
+    val configFile = cfg.customProperties
+      .getOrDefault("SQL_CONFIG_FILE", "config/benchmark-twitter.yml")
+    sqlConfig = new YamlConfiguration(configFile)
+    println(sqlConfig)
+    val csvFile = sqlConfig("twitter.input.file").getOrElse("Twitter_Data.csv")
+    val df = new LoadFunctions().loadDataCSVFile(sqlContext, csvFile, "\t")
     df.registerTempTable("Twitter")
     df.persist(StorageLevel.MEMORY_ONLY)
   }
 
   @throws(classOf[java.lang.Exception])
   override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
+    val twitterSql = sqlConfig("twitter.sql",
+      """SELECT created_at, COUNT(tweet) as count1 FROM Twitter
+          GROUP BY created_at ORDER BY count1  limit 50""".stripMargin)
     val runResults = timer("Sensor-Data") {
-    //  val dF = new LoadFunctions().executeQuery(sqlContext, "SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50")
-      //new StorageFunctions(dF).savePathMapParquetFile("/home/sany/Downloads/Twitter.pq")
-      var hashRecords = false
-      val hashFunction = hashRecords match {
-        case true => Some(Hashing.goodFastHash(math.max(4, 4) * 4))
-        case false => None
-      }
-      val rdd=DataGenerator.createKVStringDataSet(sc, 100, 100, 4,50,
-        4, 2, 8, "memory", "/tmp/", hashFunction)
-      rdd.collect().foreach(println)
+//      val hashFunction = hashRecords match {
+//        case true => Some(Hashing.goodFastHash(math.max(4, 4) * 4))
+//        case false => None
+//      }
+//      val rdd=DataGenerator.createKVStringDataSet(sc, 100, 100, 4,50,
+//        4, 2, 8, "memory", "/tmp/", hashFunction)
+//      rdd.collect().foreach(println)
+      val dF = new LoadFunctions().executeQuery(sqlContext, twitterSql)
+      new StorageFunctions(dF).savePathMapParquetFile(sqlConfig("twitter.output.file","parquet-output"))
     }
     true
   }

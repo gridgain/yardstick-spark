@@ -18,10 +18,6 @@ import org.apache.spark._
 import org.apache.spark.sql.SQLContext
 import org.yardstickframework._
 
-/**
- * Hazelcast benchmark that performs put and query operations.
- */
-//class SparkAbstractBenchmark(cacheName: String) extends TestBenchmarkDriver {
 abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriverAdapter {
   var sc: SparkContext = _
   var sqlContext: SQLContext = _
