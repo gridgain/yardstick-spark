@@ -11,7 +11,6 @@ import org.yardstickframework.util.{TimerArray, _}
 
 class SparkCoreRDDBenchmark extends SparkAbstractBenchmark("query") {
 
-  var rdd: RDD[_] = _
   var testOpts: Seq[TestOpt] = _
   val timer = new TimerArray
 
@@ -22,7 +21,7 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark("query") {
 
     testOpts = Seq(
       new TestOpt("string", "SmokeTest", 100, 50, 4, 50, 4, 2, 8, "memory"),
-      new TestOpt("int", "SmokeTestMorPartitions", 100, 50, 4, 50, 4, 4, 8, "memory")
+      new TestOpt("int", "SmokeTestMorePartitions", 100, 50, 4, 50, 4, 4, 8, "memory")
     )
 
   }
@@ -30,35 +29,34 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark("query") {
   @throws(classOf[java.lang.Exception])
   override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
     for (optsIndex <- 0 until testOpts.size) {
-      rdd = new LoadFunctions().coreBattery(sc, optsIndex, testOpts(optsIndex))
 
       testOpts(optsIndex).dataType match {
         case "string" =>
+          val rdd = LoadFunctions.genStringData(sc, optsIndex, testOpts(optsIndex))
           var runResults = timer("Sensor-Data") {
-            new Oprations().callOperationTest(rdd, "map", "take", "string")
+            Operations.stringTransformsTests(rdd, "map", "take")
           }
           runResults = timer("Sensor-Data") {
-            new Oprations().callOperationTest(rdd, "groupBykey", "countByKey", "string")
+            Operations.stringTransformsTests(rdd, "sortByKey", "collect")
           }
           runResults = timer("Sensor-Data") {
-            new Oprations().callOperationTest(rdd, "sortByKey", "collect", "string")
+            Operations.stringAggregationTests(rdd, "groupBykey", "countByKey")
           }
         case "int" =>
+          val rdd = LoadFunctions.genIntData(sc, optsIndex, testOpts(optsIndex))
           var runResults = timer("Sensor-Data") {
-            new Oprations().callOperationTest(rdd, "map", "take", "int")
+            Operations.intTransformsTests(rdd, "map", "take")
           }
           runResults = timer("Sensor-Data") {
-            new Oprations().callOperationTest(rdd, "groupBykey", "countByKey", "int")
+            Operations.intTransformsTests(rdd, "sortByKey", "collect")
           }
           runResults = timer("Sensor-Data") {
-            new Oprations().callOperationTest(rdd, "sortByKey", "collect", "int")
+            Operations.intAggregationTests(rdd, "groupBykey", "countByKey")
           }
       }
     }
     true
   }
-
-
 }
 
 object SparkCoreRDDBenchmark {

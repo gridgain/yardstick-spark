@@ -9,7 +9,7 @@ import org.yardstickframework.util.TestOpt
 /**
  * Created by sany on 25/6/15.
  */
-class LoadFunctions() {
+object LoadFunctions {
 
   var hashRecords = false
 
@@ -18,20 +18,16 @@ class LoadFunctions() {
     case false => None
   }
 
+  def genStringData(sc: SparkContext, optsIndex: Int, testOpt: TestOpt) = {
+    val rdd = DataGenerator.createKVStringDataSet(sc, testOpt.numRecords, testOpt.uniqueKeys, testOpt.keyLength, testOpt.uniqueValues,
+      testOpt.valueLength, testOpt.numPartitions, testOpt.randomSeed, testOpt.persistenceType, "/tmp/ysdata", hashFunction)
+    rdd
+  }
 
-
-  def coreBattery(sc: SparkContext, optsIndex: Int, testOpt: TestOpt): RDD[_] = {
-    val rdd = testOpt.dataType match {
-      case "string" =>
-        DataGenerator.createKVStringDataSet(sc, testOpt.numRecords, testOpt.uniqueKeys, testOpt.keyLength, testOpt.uniqueValues,
-          testOpt.valueLength, testOpt.numPartitions, testOpt.randomSeed, testOpt.persistenceType, "/tmp/", hashFunction)
-      case "int" =>
-        DataGenerator.createKVIntDataSet(sc, testOpt.numRecords, testOpt.uniqueKeys, testOpt.uniqueValues,
-          testOpt.numPartitions, testOpt.randomSeed, testOpt.persistenceType, "/tmp/")
-      case _ =>
-        throw new IllegalArgumentException("Unknown data type: " + testOpt.dataType)
-    }
-    (rdd)
+  def genIntData(sc: SparkContext, optsIndex: Int, testOpt: TestOpt) = {
+    val rdd = DataGenerator.createKVIntDataSet(sc, testOpt.numRecords, testOpt.uniqueKeys, testOpt.uniqueValues,
+      testOpt.numPartitions, testOpt.randomSeed, testOpt.persistenceType, "/tmp/ysdata")
+    rdd
   }
 
   def loadDataCSVFile(sqlContext: SQLContext, hdfsPath: String, delimiter: String): DataFrame = {

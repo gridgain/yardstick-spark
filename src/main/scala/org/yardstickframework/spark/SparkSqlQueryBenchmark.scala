@@ -36,7 +36,7 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
     sqlConfig = new YamlConfiguration(configFile)
     println(sqlConfig)
     val csvFile = sqlConfig("twitter.input.file").getOrElse("Twitter_Data.csv")
-    val df = new LoadFunctions().loadDataCSVFile(sqlContext, csvFile, "\t")
+    val df = LoadFunctions.loadDataCSVFile(sqlContext, csvFile, "\t")
     df.registerTempTable("Twitter")
     df.persist(StorageLevel.MEMORY_ONLY)
   }
@@ -54,7 +54,7 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
 //      val rdd=DataGenerator.createKVStringDataSet(sc, 100, 100, 4,50,
 //        4, 2, 8, "memory", "/tmp/", hashFunction)
 //      rdd.collect().foreach(println)
-      val dF = new LoadFunctions().executeQuery(sqlContext, twitterSql)
+      val dF = LoadFunctions.executeQuery(sqlContext, twitterSql)
       new StorageFunctions(dF).savePathMapParquetFile(sqlConfig("twitter.output.file","parquet-output"))
     }
     true
