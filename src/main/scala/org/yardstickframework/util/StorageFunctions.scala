@@ -12,10 +12,13 @@ class StorageFunctions(self: DataFrame) extends Utils {
 
   def baseSchema: StructType = self.schema
 
-  def savePathMapParquetFile(fullPath: String): String = {
+  def saveFileAsParquetFile(fullPath: String): String = {
     self.saveAsParquetFile(deleteFileIfExists(fullPath))
     fullPath
   }
-
+  def saveFileAsTextFile(fullPath: String): String = {
+    self.map(line=>line).saveAsTextFile(deleteFileIfExists(fullPath))
+    fullPath
+  }
 
 }

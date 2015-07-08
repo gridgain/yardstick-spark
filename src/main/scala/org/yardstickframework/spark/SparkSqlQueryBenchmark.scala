@@ -46,7 +46,7 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
     val twitterSql = sqlConfig("twitter.sql",
       """SELECT created_at, COUNT(tweet) as count1 FROM Twitter
           GROUP BY created_at ORDER BY count1  limit 50""".stripMargin)
-    val runResults = timer("Sensor-Data") {
+    val runResults = timer("Twitter-Data") {
 //      val hashFunction = hashRecords match {
 //        case true => Some(Hashing.goodFastHash(math.max(4, 4) * 4))
 //        case false => None
@@ -55,7 +55,7 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
 //        4, 2, 8, "memory", "/tmp/", hashFunction)
 //      rdd.collect().foreach(println)
       val dF = LoadFunctions.executeQuery(sqlContext, twitterSql)
-      new StorageFunctions(dF).savePathMapParquetFile(sqlConfig("twitter.output.file","parquet-output"))
+      new StorageFunctions(dF).saveFileAsParquetFile(sqlConfig("twitter.output.file","parquet-output"))
     }
     true
   }
