@@ -21,9 +21,9 @@ class TimerArray {
   val logger = LoggerFactory.getLogger(getClass)
   var timersMap: Map[String, TimerEntry] = Map()
 
-  def start(name: String) = timersMap += name -> TimerEntry(name, System.currentTimeMillis)
+  def start(name: String) = timersMap += name -> TimerEntry(name, System.nanoTime())
 
-  def end(name: String) = timersMap(name).end = System.currentTimeMillis()
+  def end(name: String) = timersMap(name).end = System.nanoTime()
 
   val formatter = java.text.NumberFormat.getIntegerInstance
 
@@ -33,13 +33,13 @@ class TimerArray {
     start(name)
     val result = block
     end(name)
-    logger.info(s"Timeit ended for $name. Took ${formatTime(timersMap(name).elapsed)} millis")
+    logger.info(s"Timeit ended for $name. Took ${formatTime(timersMap(name).elapsed)} nanoseconds")
     result
   }
 
-  private def timeInSec(timeInMillis: Long) = timeInMillis / 1000
+  private def timeInSec(timeInNano: Long) = timeInNano / 1000000
 
-  private def formatTime(timeInMillis: Long) = formatter.format(timeInMillis)
+  private def formatTime(timeInNano: Long) = formatter.format(timeInNano)
 
   def getTimer(name: String): Option[TimerEntry] = timersMap.get(name)
 
