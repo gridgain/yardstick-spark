@@ -21,6 +21,7 @@ import org.apache.ignite.scalar.scalar._
 import org.apache.ignite.configuration.CacheConfiguration
 import org.apache.ignite.{Ignite, IgniteCache}
 
+import collection.JavaConverters._
 
 class IgniteSqlBenchmark extends IgniteAbstractBenchmark {
 
@@ -32,8 +33,8 @@ class IgniteSqlBenchmark extends IgniteAbstractBenchmark {
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration): Unit = {
     super.setUp(cfg)
-    val configFile = cfg.customProperties
-      .getOrDefault("SQL_CONFIG_FILE", "config/benchmark-twitter.yml")
+    val configFile = cfg.customProperties.asScala
+      .getOrElse("SQL_CONFIG_FILE", "config/benchmark-twitter.yml")
     sqlConfig = new YamlConfiguration(configFile)
     println(sqlConfig)
     val csvFile = sqlConfig("twitter.input.file").getOrElse("Twitter_Data.csv")
