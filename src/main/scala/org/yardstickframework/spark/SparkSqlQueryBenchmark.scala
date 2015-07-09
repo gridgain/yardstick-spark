@@ -21,6 +21,8 @@ import org.yardstickframework.spark.util.YamlConfiguration
 import org.yardstickframework.util.{TimerArray, _}
 import com.google.common.hash.Hashing
 
+import collection.JavaConverters._
+
 class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
 
   val timer = new TimerArray
@@ -31,8 +33,8 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
   override def setUp(cfg: BenchmarkConfiguration) {
     super.setUp(cfg)
     new BenchmarkLoader().initialize(cfg)
-    val configFile = cfg.customProperties
-      .getOrDefault("SQL_CONFIG_FILE", "config/benchmark-twitter.yml")
+    val configFile = cfg.customProperties.asScala
+      .getOrElse("SQL_CONFIG_FILE", "config/benchmark-twitter.yml")
     sqlConfig = new YamlConfiguration(configFile)
     println(sqlConfig)
     val csvFile = sqlConfig("twitter.input.file").getOrElse("Twitter_Data.csv")
