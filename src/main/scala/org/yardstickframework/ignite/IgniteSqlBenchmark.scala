@@ -48,10 +48,8 @@ class IgniteSqlBenchmark extends IgniteAbstractBenchmark {
       """SELECT created_at, COUNT(tweet) as count1 FROM Twitter
           GROUP BY created_at ORDER BY count1  limit 50""".stripMargin)
     val runResults = timer("Twitter-Data") {
-      dF = new CommonFunctions().executeQuery(cache, twitterSql)
+    	dF = new CommonFunctions().executeQuery(cache, twitterSql)
     }
-    new StorageFunctions(dF).saveFileAsParquetFile(sqlConfig("twitter.output.parquetfile", "parquet-output"))
-    new StorageFunctions(dF).saveFileAsTextFile(sqlConfig("twitter.output.textfile", "text-output"))
     true
   }
 

@@ -20,14 +20,14 @@ import org.yardstickframework.impl.BenchmarkLoader
 import org.yardstickframework.spark.util.YamlConfiguration
 import org.yardstickframework.util.{TimerArray, _}
 import com.google.common.hash.Hashing
-
+import org.apache.spark.sql.DataFrame
 import collection.JavaConverters._
 
 class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
 
   val timer = new TimerArray
   var sqlConfig: YamlConfiguration = _
-
+  var dF: DataFrame = _
 
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration) {
@@ -56,12 +56,10 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
 //      val rdd=DataGenerator.createKVStringDataSet(sc, 100, 100, 4,50,
 //        4, 2, 8, "memory", "/tmp/", hashFunction)
 //      rdd.collect().foreach(println)
-      val dF = LoadFunctions.executeQuery(sqlContext, twitterSql)
-      new StorageFunctions(dF).saveFileAsParquetFile(sqlConfig("twitter.output.file","parquet-output"))
+      dF= LoadFunctions.executeQuery(sqlContext, twitterSql)
     }
     true
   }
-
 }
 
 object SparkSqlQueryBenchmark {
