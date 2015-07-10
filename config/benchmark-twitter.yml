@@ -3,3 +3,5 @@ twitter.sql : |
   SELECT created_at, COUNT(tweet) as count1 FROM Twitter
   GROUP BY created_at ORDER BY count1  limit 50
 twitter.output.file : /tmp/twitter.out
+twitter.output.parquetfile : /tmp/twitterP.out
+twitter.output.textfile : /tmp/twitterT.out
