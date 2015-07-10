@@ -4,6 +4,7 @@ import com.google.common.hash.Hashing
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, SQLContext}
+import org.apache.spark.sql.hive.HiveContext
 import org.yardstickframework.util.TestOpt
 
 /**
@@ -42,7 +43,7 @@ object LoadFunctions {
 
   }
 
-  def executeQuery(sqlContext: SQLContext, query: String): DataFrame = {
+  def executeQuery(sqlContext: HiveContext, query: String): DataFrame = {
     sqlContext.sql(query)
   }
 }
