@@ -17,16 +17,17 @@ package org.yardstickframework.spark
 import org.apache.spark._
 import org.apache.spark.sql.SQLContext
 import org.yardstickframework._
+import org.apache.spark.sql.hive.HiveContext
 
 abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriverAdapter {
   var sc: SparkContext = _
-  var sqlContext: SQLContext = _
+  var sqlContext: HiveContext = _
 
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration) {
     super.setUp(cfg)
     sc = new SparkContext("local[4]", "BenchmarkTest")
-    sqlContext = new SQLContext(sc)
+    sqlContext = new HiveContext(sc)
   }
 
   @throws(classOf[Exception])
