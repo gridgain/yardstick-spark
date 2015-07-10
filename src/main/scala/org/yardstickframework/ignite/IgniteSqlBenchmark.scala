@@ -1,8 +1,20 @@
-package org.yardstickframework.ignite
-
-/**
- * Created by sany on 6/7/15.
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+package org.yardstickframework.ignite
 
 import org.apache.ignite.cache.CacheMode
 import org.apache.ignite.cache.query.{QueryCursor, SqlFieldsQuery, SqlQuery}
@@ -12,7 +24,7 @@ import org.yardstickframework._
 import org.yardstickframework.ignite.util._
 import org.apache.ignite.configuration._
 import org.yardstickframework.spark.util.YamlConfiguration
-import org.yardstickframework.util.{TimerArray, StorageFunctions}
+import org.yardstickframework.spark.util.{TimerArray, StorageFunctions}
 
 import scala.util.Random
 
@@ -27,7 +39,7 @@ class IgniteSqlBenchmark extends IgniteAbstractBenchmark {
 
   var sqlConfig: YamlConfiguration = _
   var cache: IgniteRDD[String, Twitter] = _
-  val timer = new TimerArray
+  val timer = new TimerArray(cfg)
   var dF: DataFrame = _
 
   @throws(classOf[Exception])

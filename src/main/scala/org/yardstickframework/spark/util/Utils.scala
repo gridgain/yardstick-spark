@@ -1,4 +1,4 @@
-package org.yardstickframework.util
+package org.yardstickframework.spark.util
 
 import java.io.File
 

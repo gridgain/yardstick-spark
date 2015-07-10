@@ -6,28 +6,25 @@ package org.yardstickframework.spark
 
 import org.apache.spark.rdd.RDD
 import org.yardstickframework._
-import org.yardstickframework.util._
-import org.yardstickframework.util.{TimerArray, _}
+import org.yardstickframework.spark.util.{TimerArray, TestOpt, LoadFunctions, Operations}
 
-class SparkCoreRDDBenchmark extends SparkAbstractBenchmark("query") {
+class SparkCoreRDDBenchmark extends SparkAbstractBenchmark("CoreRDDTests") {
 
-  var testOpts: Seq[TestOpt] = _
-  val timer = new TimerArray
+  val timer = new TimerArray(cfg)
 
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration): Unit = {
 
     super.setUp(cfg)
 
-    testOpts = Seq(
+  }
+
+  def simpleTests() {
+    val testOpts = Seq(
       new TestOpt("string", "SmokeTest", 100, 50, 4, 50, 4, 2, 8, "memory"),
       new TestOpt("int", "SmokeTestMorePartitions", 100, 50, 4, 50, 4, 4, 8, "memory")
     )
 
-  }
-
-  @throws(classOf[java.lang.Exception])
-  override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
     for (optsIndex <- 0 until testOpts.size) {
 
       testOpts(optsIndex).dataType match {
@@ -56,6 +53,16 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark("query") {
       }
     }
     true
+  }
+
+  def depthTests(): Boolean = {
+    val (pass, tresults) = CoreTestMatrix.runMatrix(sc,IcInfo(ic,icCache))
+    pass
+  }
+
+  @throws(classOf[java.lang.Exception])
+  override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
+    /* simpleTests() && */ depthTests()
   }
 }
 

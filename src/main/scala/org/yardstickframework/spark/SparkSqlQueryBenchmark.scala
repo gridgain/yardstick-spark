@@ -17,15 +17,14 @@ package org.yardstickframework.spark
 import org.apache.spark.storage._
 import org.yardstickframework._
 import org.yardstickframework.impl.BenchmarkLoader
-import org.yardstickframework.spark.util.YamlConfiguration
-import org.yardstickframework.util.{TimerArray, _}
+import org.yardstickframework.spark.util.{StorageFunctions, LoadFunctions, TimerArray, YamlConfiguration}
 import com.google.common.hash.Hashing
 import org.apache.spark.sql.DataFrame
 import collection.JavaConverters._
 
 class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
 
-  val timer = new TimerArray
+  var timer: TimerArray = _
   var sqlConfig: YamlConfiguration = _
   var dF: DataFrame = _
 
@@ -41,6 +40,7 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
     val df = LoadFunctions.loadDataCSVFile(sqlContext, csvFile, "\t")
     df.registerTempTable("Twitter")
     df.persist(StorageLevel.MEMORY_ONLY)
+    timer = new TimerArray(cfg)
   }
 
   @throws(classOf[java.lang.Exception])
