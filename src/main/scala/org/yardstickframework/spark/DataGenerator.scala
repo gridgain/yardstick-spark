@@ -88,29 +88,26 @@ class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataP
       val nWords = words.size
     }
 
-    def nextLong(rng: java.util.Random, n: Long) = {
-      // error checking and 2^x checking removed for simplicity.
-      var bits = 1L
-      var out = 1L
-      do {
-        bits = (rng.nextLong() << 1) >>> 1
-        out = bits % n
-      } while (bits - out + (n - 1) < 0L)
-      out
-    }
-
-    def longs(nrecs: Int, min: Long, max: Long) = {
-      val rnd = new java.util.Random
-      val ret = (0 until nrecs).foldLeft(Vector[Long]()) { case (v, ix) =>
-        v :+ nextLong(rnd, max - min) + min
-        v
-      }
-      ret
-    }
-
     val rdd = if (optIcInfo.isDefined) {
       val localData = sc.parallelize(
       {
+        def nextLong(rng: java.util.Random, n: Long) = {
+          // error checking and 2^x checking removed for simplicity.
+          var bits = 1L
+          var out = 1L
+          do {
+            bits = (rng.nextLong() << 1) >>> 1
+            out = bits % n
+          } while (bits - out + (n - 1) < 0L)
+          out
+        }
+        def longs(nrecs: Int, min: Long, max: Long) = {
+          val rnd = new java.util.Random
+          val ret = (0 until nrecs).foldLeft(Vector[Long]()) { case (v, ix) =>
+            v :+ nextLong(rnd, max - min) + min
+          }
+          ret
+        }
         val rnd = new java.util.Random
         var mlongs = longs(dataToBc.nrecs, optMin.get, optMax.get)
         val out = (0 until dataToBc.nrecs).foldLeft(mutable.ArrayBuffer[RddTuple]()) { case (m, n) =>
@@ -124,8 +121,25 @@ class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataP
       optIcInfo.get.icCache
     } else {
       val bcData = sc.broadcast(dataToBc)
-      val localData = sc.parallelize((0 until dataParams.nPartitions).toSeq, dataParams.nPartitions)
-      val rdd = localData.mapPartitionsWithIndex { case (partx, iter) =>
+      val rddSeq = sc.parallelize((0 until dataParams.nPartitions).toSeq, dataParams.nPartitions)
+      val rdd = rddSeq.mapPartitionsWithIndex { case (partx, iter) =>
+        def nextLong(rng: java.util.Random, n: Long) = {
+          // error checking and 2^x checking removed for simplicity.
+          var bits = 1L
+          var out = 1L
+          do {
+            bits = (rng.nextLong() << 1) >>> 1
+            out = bits % n
+          } while (bits - out + (n - 1) < 0L)
+          out
+        }
+        def longs(nrecs: Int, min: Long, max: Long) = {
+          val rnd = new java.util.Random
+          val ret = (0 until nrecs).foldLeft(Vector[Long]()) { case (v, ix) =>
+            v :+ nextLong(rnd, max - min) + min
+          }
+          ret
+        }
         val rnd = new java.util.Random
         val iterout = iter.map { ix =>
           val locData = bcData.value
