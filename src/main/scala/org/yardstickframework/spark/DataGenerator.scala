@@ -88,14 +88,34 @@ class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataP
       val nWords = words.size
     }
 
+    def nextLong(rng: java.util.Random, n: Long) = {
+      // error checking and 2^x checking removed for simplicity.
+      var bits = 1L
+      var out = 1L
+      do {
+        bits = (rng.nextLong() << 1) >>> 1
+        out = bits % n
+      } while (bits - out + (n - 1) < 0L)
+      out
+    }
+
+    def longs(nrecs: Int, min: Long, max: Long) = {
+      val rnd = new java.util.Random
+      val ret = (0 until nrecs).foldLeft(Vector[Long]()) { case (v, ix) =>
+        v :+ nextLong(rnd, max - min) + min
+        v
+      }
+      ret
+    }
+
     val rdd = if (optIcInfo.isDefined) {
       val localData = sc.parallelize(
       {
         val rnd = new java.util.Random
-        var longs = new java.util.Random().longs(dataToBc.nrecs, optMin.get, optMax.get).iterator
+        var mlongs = longs(dataToBc.nrecs, optMin.get, optMax.get)
         val out = (0 until dataToBc.nrecs).foldLeft(mutable.ArrayBuffer[RddTuple]()) { case (m, n) =>
           val windex = rnd.nextInt(dataToBc.nWords)
-          m += Tuple2(longs.next, dataToBc.words(windex))
+          m += Tuple2(mlongs(n), dataToBc.words(windex))
         }
         out
       }
@@ -112,10 +132,10 @@ class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataP
           val (nrecs, (lbound, ubound)) = locData.nrecsAndBounds(partx)
           assert(nrecs > 0, s"nrecs is not positive $nrecs")
           assert(ubound > lbound, s"ubound $ubound < lbound $lbound")
-          var longs = new java.util.Random().longs(nrecs, lbound, ubound).iterator
+          val mlongs = longs(nrecs, lbound, ubound)
           val out = (0 until nrecs).foldLeft(mutable.ArrayBuffer[RddTuple]()) { case (m, n) =>
             val windex = rnd.nextInt(locData.nWords)
-            m += Tuple2(longs.next, locData.words(windex))
+            m += Tuple2(mlongs(n), locData.words(windex))
           }
           out
         }
