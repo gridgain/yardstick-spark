@@ -19,7 +19,7 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark("CoreRDDTests") {
 
   }
 
-  def simpleTests() {
+  def simpleTests() = {
     val testOpts = Seq(
       new TestOpt("string", "SmokeTest", 100, 50, 4, 50, 4, 2, 8, "memory"),
       new TestOpt("int", "SmokeTestMorePartitions", 100, 50, 4, 50, 4, 4, 8, "memory")
