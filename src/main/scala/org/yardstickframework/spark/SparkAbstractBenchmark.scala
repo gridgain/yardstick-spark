@@ -14,8 +14,11 @@
 
 package org.yardstickframework.spark
 
+import org.apache.ignite.Ignition
+import org.apache.ignite.cache.CacheMode
 import org.apache.ignite.cache.query.annotations.{QueryTextField, QuerySqlField}
 import org.apache.ignite.configuration.{CacheConfiguration, IgniteConfiguration}
+import org.apache.ignite.scalar.scalar._
 import org.apache.ignite.spark.{IgniteRDD, IgniteContext}
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder
@@ -27,6 +30,7 @@ import org.yardstickframework.spark.YsSparkTypes.{RddKey, RddVal, RddTuple}
 import scala.annotation.meta.field
 
 case class IcInfo(ic: IgniteContext[RddKey, RddVal], icCache: IgniteRDD[RddKey, RddVal])
+case class Entity(@ScalarCacheQuerySqlField id: Int, @ScalarCacheQuerySqlField name: String,@ScalarCacheQuerySqlField salary: Int)
 
 abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriverAdapter
                                                                  with java.io.Serializable {
@@ -54,6 +58,7 @@ abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriver
    * @return Ignite configuration.
    */
   def configuration(gridName: String, client: Boolean): IgniteConfiguration = {
+    sc = new SparkContext("local[*]", "test")
     val cfg = new IgniteConfiguration
     val discoSpi = new TcpDiscoverySpi
     discoSpi.setIpFinder(IP_FINDER)
@@ -70,25 +75,28 @@ abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriver
    * @param gridName Grid name.
    * @return Cache configuration.
    */
-  def cacheConfiguration(gridName: String): CacheConfiguration[Object, Object] = {
-    val ccfg = new CacheConfiguration[Object, Object]()
+  def cacheConfiguration(gridName: String): CacheConfiguration[String, Entity] = {
+    val ccfg = new CacheConfiguration[String, Entity]()
     ccfg.setBackups(1)
     ccfg.setName(PARTITIONED_CACHE_NAME)
-    ccfg.setIndexedTypes(classOf[RddKey], classOf[RddVal])
+    ccfg.setCacheMode(CacheMode.PARTITIONED)
+    ccfg.setIndexedTypes(classOf[String], classOf[Entity])
     ccfg
   }
 
-  case class Entity(key: Int, name: String, ival: Int)
+
 
   // Following test is taken from IgniteRDDSpec in the original Ignite distribution
-  def icTest(cfg: BenchmarkConfiguration) = {
+  def icTest(cfg: BenchmarkConfiguration)   {
     val sc = new SparkContext("local[*]", "test")
+    val ignition  = Ignition.start("config/example-cache.xml")
+    val ic = new IgniteContext[String, Entity](sc,
+      () ⇒ new IgniteConfiguration())
 
     try {
-      val ic = new IgniteContext[String, Entity](sc,
-        () ⇒ configuration("client", client = true))
 
-      val cache: IgniteRDD[String, Entity] = ic.fromCache(PARTITIONED_CACHE_NAME)
+
+      val cache: IgniteRDD[String, Entity] = ic.fromCache(cacheConfiguration("client"))
 
       import ic.sqlContext.implicits._
 
@@ -105,7 +113,7 @@ abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriver
       assert("name50" == res(0)(1), "Invalid result")
       assert(5000 == res(0)(2), "Invalid result")
 
-      val df0 = cache.sql("select id, name, salary from Entity").where('NAME === "name50" and 'SALARY === 5000)
+      val df0 = cache.sql("select  id, name, salary from Entity").where('NAME === "name50" and 'SALARY === 5000)
 
       val res0 = df0.collect()
 
@@ -118,6 +126,7 @@ abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriver
     }
     finally {
       sc.stop()
+      ic.close()
     }
   }
 
@@ -129,8 +138,10 @@ abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriver
 
     sc = new SparkContext("local[4]", "BenchmarkTest")
     sqlContext = new HiveContext(sc)
+
+    val ignition  = Ignition.start("config/example-cache.xml")
     val ic2 = new IgniteContext[RddKey, RddVal](sc,
-      () ⇒ configuration("client", client = true))
+      () ⇒ new IgniteConfiguration())
     import ic2.sqlContext.implicits._
     val icCache2 = ic2.fromCache(PARTITIONED_CACHE_NAME)
        icCache2.savePairs(  sc.parallelize({
@@ -143,7 +154,7 @@ abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriver
   @throws(classOf[Exception])
   override def tearDown() {
     sc.stop
-    ic.close
+
   }
 
 }

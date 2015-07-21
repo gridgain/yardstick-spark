@@ -20,9 +20,11 @@ import org.apache.ignite.cache.CacheMode
 import org.apache.ignite.cache.query.{QueryCursor, SqlFieldsQuery, SqlQuery}
 import org.apache.ignite.spark.{IgniteRDD, IgniteContext}
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.hive.HiveContext
 import org.yardstickframework._
 import org.yardstickframework.ignite.util._
 import org.apache.ignite.configuration._
+import org.yardstickframework.spark.{SqlBatteryConfigs, SqlTestMatrix, SqlBattery}
 import org.yardstickframework.spark.util.YamlConfiguration
 import org.yardstickframework.spark.util.{TimerArray, StorageFunctions}
 
@@ -42,6 +44,7 @@ class IgniteSqlBenchmark extends IgniteAbstractBenchmark {
   val timer = new TimerArray(cfg)
   var dF: DataFrame = _
 
+
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration): Unit = {
     super.setUp(cfg)
@@ -56,11 +59,9 @@ class IgniteSqlBenchmark extends IgniteAbstractBenchmark {
 
   @throws(classOf[java.lang.Exception])
   override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
-    val twitterSql = sqlConfig("twitter.sql",
-      """SELECT created_at, COUNT(tweet) as count1 FROM Twitter
-          GROUP BY created_at ORDER BY count1  limit 50""".stripMargin)
-    val runResults = timer("Twitter-Data") {
-    	dF = new CommonFunctions().executeQuery(cache, twitterSql)
+
+    val runResults = timer("Twitter-Data-IgniteSQL") {
+      SqlTestMatrix.runMatrix(SqlBatteryConfigs(cache,sqlContext,sqlConfig,true))
     }
     true
   }

@@ -20,6 +20,8 @@ import java.io.Serializable
 
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.DataFrame
+import org.yardstickframework.ignite.util.Twitter
 import org.yardstickframework.spark.YsSparkTypes._
 
 import scala.collection.mutable
@@ -27,8 +29,11 @@ import scala.collection.mutable
 object YsSparkTypes {
   type RddKey = Long
   type RddVal = String
+  type DataFrameKey = String
+  type DataFrameVal = Twitter
   type RddTuple = (RddKey, RddVal)
   type InputRDD = RDD[RddTuple]
+  type InputDataFrame = DataFrame
   type XformRDD = RDD[RddTuple]
   type AggRDD = RDD[(RddKey, Iterable[RddVal])]
   type CountRDD = RDD[(RddKey, Long)]
@@ -40,6 +45,12 @@ object YsSparkTypes {
   case object CollectByKey extends Action("collectByKey")
 
   case object CollectAsMap extends Action("collectAsMap")
+
+  case object SqlCollect extends Action("collect")
+
+  case object SqlCollectByKey extends Action("collectByKey")
+
+  case object SqlCollectAsList extends Action("collectAsList")
 
 }
 
@@ -154,7 +165,12 @@ class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataP
       }
       rdd
     }
+    //    if (optIcInfo.isDefined) {
+    //      optIcInfo.get.icCache.savePairs(rdd)
+    //      optIcInfo.get.icCache
+    //    } else {
     rdd
+    //    }
   }
 }
 

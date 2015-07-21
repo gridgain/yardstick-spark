@@ -14,19 +14,23 @@
 
 package org.yardstickframework.spark
 
-import org.apache.spark.storage._
-import org.yardstickframework._
-import org.yardstickframework.impl.BenchmarkLoader
-import org.yardstickframework.spark.util.{StorageFunctions, LoadFunctions, TimerArray, YamlConfiguration}
-import com.google.common.hash.Hashing
+
+import org.apache.ignite.spark.{IgniteRDD, IgniteContext}
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.storage.StorageLevel
+import org.yardstickframework._
+import org.yardstickframework.ignite.util._
+import org.yardstickframework.impl.BenchmarkLoader
+import org.yardstickframework.spark.util.{LoadFunctions, YamlConfiguration, TimerArray}
 import collection.JavaConverters._
+
 
 class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
 
   var timer: TimerArray = _
   var sqlConfig: YamlConfiguration = _
   var dF: DataFrame = _
+  var cache: IgniteRDD[String, Twitter] = _
 
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration) {
@@ -45,19 +49,13 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
 
   @throws(classOf[java.lang.Exception])
   override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
-    val twitterSql = sqlConfig("twitter.sql",
-      """SELECT created_at, COUNT(tweet) as count1 FROM Twitter
-          GROUP BY created_at ORDER BY count1  limit 50""".stripMargin)
-    val runResults = timer("Twitter-Data") {
-//      val hashFunction = hashRecords match {
-//        case true => Some(Hashing.goodFastHash(math.max(4, 4) * 4))
-//        case false => None
-//      }
-//      val rdd=DataGenerator.createKVStringDataSet(sc, 100, 100, 4,50,
-//        4, 2, 8, "memory", "/tmp/", hashFunction)
-//      rdd.collect().foreach(println)
-      dF= LoadFunctions.executeQuery(sqlContext, twitterSql)
+     timer("Twitter-Data-SparkSQL") {
+      SqlTestMatrix.runMatrix(SqlBatteryConfigs(cache,sqlContext,sqlConfig,false))
     }
+    timer("Twitter-Data-IgniteSQL") {
+      SqlTestMatrix.runMatrix(SqlBatteryConfigs(cache,sqlContext,sqlConfig,true))
+    }
+
     true
   }
 }

@@ -1,5 +1,13 @@
 twitter.input.file : src/main/resources/Twitter_Data.csv
-twitter.sql : |
+twitter.sql.groupby : |
+  SELECT created_at, COUNT(tweet) as count1 FROM Twitter
+  GROUP BY created_at  limit 50
+twitter.sql.orderby : |
+  SELECT created_at, COUNT(tweet) as count1 FROM Twitter
+  GROUP BY created_at ORDER BY count1  limit 50
+twitter.sql.count : |
+  SELECT COUNT(*) from Twitter
+twitter.sql.join : |
   SELECT created_at, COUNT(tweet) as count1 FROM Twitter
   GROUP BY created_at ORDER BY count1  limit 50
 twitter.output.file : /tmp/twitter.out
