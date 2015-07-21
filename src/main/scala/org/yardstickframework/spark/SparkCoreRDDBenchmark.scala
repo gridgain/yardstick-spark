@@ -1,9 +1,5 @@
 package org.yardstickframework.spark
 
-/**
- * Created by sany on 26/6/15.
- */
-
 import org.apache.spark.rdd.RDD
 import org.yardstickframework._
 import org.yardstickframework.spark.util.{TimerArray, TestOpt, LoadFunctions, Operations}
