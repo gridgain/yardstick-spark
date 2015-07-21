@@ -71,9 +71,11 @@ class FileDataGenerator(sc: SparkContext, dataParams: GenDataParams, path: Strin
 
 class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataParams: GenDataParams)
   extends DataGenerator(dataParams, None) {
-  override def genData(optMin: Option[Long] = dataParams.optMin, optMax: Option[Long] = dataParams.optMax) = {
+  override def genData(optMinIn: Option[Long] = dataParams.optMin, optMaxIn: Option[Long] = dataParams.optMax) = {
 
     val dataToBc = new java.io.Serializable {
+      val optMin = optMinIn
+      val optMax = optMaxIn
       val params = dataParams
       val nPartitions = dataParams.nPartitions
       val nrecs = Math.ceil(dataParams.nRecords / (dataParams.nPartitions * 2.0)).toInt
@@ -88,11 +90,11 @@ class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataP
       val nWords = words.size
     }
 
+    val bcData = sc.broadcast(dataToBc)
     val rdd = if (optIcInfo.isDefined) {
-      val localData = sc.parallelize(
-      {
+      val localData = sc.parallelize({
+        val dataStruct = bcData.value
         def nextLong(rng: java.util.Random, n: Long) = {
-          // error checking and 2^x checking removed for simplicity.
           var bits = 1L
           var out = 1L
           do {
@@ -103,28 +105,24 @@ class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataP
         }
         def longs(nrecs: Int, min: Long, max: Long) = {
           val rnd = new java.util.Random
-          val ret = (0 until nrecs).foldLeft(Vector[Long]()) { case (v, ix) =>
+          (0 until nrecs).foldLeft(Vector[Long]()) { case (v, ix) =>
             v :+ nextLong(rnd, max - min) + min
           }
-          ret
         }
         val rnd = new java.util.Random
-        var mlongs = longs(dataToBc.nrecs, optMin.get, optMax.get)
-        val out = (0 until dataToBc.nrecs).foldLeft(mutable.ArrayBuffer[RddTuple]()) { case (m, n) =>
-          val windex = rnd.nextInt(dataToBc.nWords)
-          m += Tuple2(mlongs(n), dataToBc.words(windex))
+        var mlongs = longs(dataStruct.nrecs, dataStruct.optMin.get, dataStruct.optMax.get)
+        val out = (0 until dataStruct.nrecs).foldLeft(mutable.ArrayBuffer[RddTuple]()) { case (m, n) =>
+          val windex = rnd.nextInt(dataStruct.nWords)
+          m += Tuple2(mlongs(n), dataStruct.words(windex))
         }
         out
-      }
-      , dataParams.nPartitions)
-      val drdd = optIcInfo.get.icCache.savePairs(localData)
+      }, dataToBc.nPartitions).persist()
+      optIcInfo.get.icCache.savePairs(localData)
       optIcInfo.get.icCache
     } else {
-      val bcData = sc.broadcast(dataToBc)
       val rddSeq = sc.parallelize((0 until dataParams.nPartitions).toSeq, dataParams.nPartitions)
       val rdd = rddSeq.mapPartitionsWithIndex { case (partx, iter) =>
         def nextLong(rng: java.util.Random, n: Long) = {
-          // error checking and 2^x checking removed for simplicity.
           var bits = 1L
           var out = 1L
           do {
@@ -135,10 +133,9 @@ class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataP
         }
         def longs(nrecs: Int, min: Long, max: Long) = {
           val rnd = new java.util.Random
-          val ret = (0 until nrecs).foldLeft(Vector[Long]()) { case (v, ix) =>
+          (0 until nrecs).foldLeft(Vector[Long]()) { case (v, ix) =>
             v :+ nextLong(rnd, max - min) + min
           }
-          ret
         }
         val rnd = new java.util.Random
         val iterout = iter.map { ix =>

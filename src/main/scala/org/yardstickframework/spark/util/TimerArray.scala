@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory
 import org.yardstickframework.BenchmarkConfiguration
 import org.yardstickframework.spark.util.YardstickLogger._
 
-class TimerArray(cfg: BenchmarkConfiguration) {
+class TimerArray(cfg: BenchmarkConfiguration) extends java.io.Serializable {
   val logger = LoggerFactory.getLogger(getClass)
   var timersMap: Map[String, TimerEntry] = Map()
 

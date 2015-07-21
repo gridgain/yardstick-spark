@@ -43,7 +43,8 @@ object CoreTestMatrix {
   val A = Array
   def runMatrix(sc: SparkContext, icInfo: IcInfo) = {
     val testDims = new {
-      var nRecords = A(10000, 1000000, 10000000)
+//      var nRecords = A(10000, 1000000, 10000000)
+      var nRecords = A(100000 , 1000000 /*, 10000000 */)
       var nPartitions =  A(20) // A(10, 100)
       var firstPartitionSkew = A(10) //  A(/*1, 10, 100)
       val min = 0L
@@ -55,7 +56,8 @@ object CoreTestMatrix {
     for (nRecs <- testDims.nRecords;
          nPartitions <- testDims.nPartitions;
          skew <- testDims.firstPartitionSkew;
-         useIgnite <- A(false /*,true */)) {
+//         useIgnite <- A(false /*,true */)) {
+         useIgnite <- A(true )) {
 
       val rawname = "CoreSmoke"
       val tname = s"$dtf/$rawname"
