@@ -117,17 +117,17 @@ abstract class SparkAbstractBenchmark(cacheName: String) extends IgniteAbstractB
     super.setUp(cfg)
 
     // Run a test using IgniteRDDSpec from the original Ignite distribution
-    icTest()
-
-    sc = new SparkContext("local[2]","itest")
-    sqlContext = new HiveContext(sc)
-    val ic2 = new IgniteContext[RddKey, RddVal](sc,
-      () ⇒ new IgniteConfiguration())
-    val icCache2 = ic2.fromCache(PARTITIONED_CACHE_NAME)
-       icCache2.savePairs(  sc.parallelize({
-        (0 until 1000).map{ n => (n.toLong, s"I am $n")}
-          }, 10)) // .persist()
-      println(icCache2.collect)
+//    icTest()
+//
+//    sc = new SparkContext("local[2]","itest")
+//    sqlContext = new HiveContext(sc)
+//    val ic2 = new IgniteContext[RddKey, RddVal](sc,
+//      () ⇒ new IgniteConfiguration())
+//    val icCache2 = ic2.fromCache(PARTITIONED_CACHE_NAME)
+//       icCache2.savePairs(  sc.parallelize({
+//        (0 until 1000).map{ n => (n.toLong, s"I am $n")}
+//          }, 10)) // .persist()
+//      println(icCache2.collect)
 
   }
 
