@@ -77,16 +77,6 @@ object CoreTestMatrix {
   }
 }
 
-object CoreBattery {
-
-  def runBattery(): Unit = {
-
-  }
-  def main(args: Array[String]) {
-
-  }
-}
-
 class CoreBattery(sc: SparkContext, optIcInfo: Option[IcInfo],
   testName: String, outputDir: String, inputRdd: InputRDD) extends TestBattery("CoreBattery", s"$outputDir/$testName") {
   assert(inputRdd != null,"Hey null RDD's are not cool")
@@ -184,16 +174,4 @@ class CoreBattery(sc: SparkContext, optIcInfo: Option[IcInfo],
     results
   }
 }
-
-case class TestDimRange[K](min: K, max: K)
-
-//case class TestDim[K](@BeanProperty name: String, @BeanProperty battery: TestBattery, @BeanProperty var dimRange: TestDimRange[K], @BeanProperty var optChild: Option[TestDim] = None = {
-//  optChild match {
-//    case Some(child) => {
-//      child.runTests(
-//    }
-//
-//  }
-//  class TestMatrix
-//}
 

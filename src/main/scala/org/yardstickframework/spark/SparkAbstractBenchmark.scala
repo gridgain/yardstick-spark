@@ -32,6 +32,40 @@ import scala.annotation.meta.field
 case class IcInfo(ic: IgniteContext[RddKey, RddVal], icCache: IgniteRDD[RddKey, RddVal])
 case class Entity(@ScalarCacheQuerySqlField id: Int, @ScalarCacheQuerySqlField name: String,@ScalarCacheQuerySqlField salary: Int)
 
+abstract class SparkAbstractBenchmark(cacheName: String) extends IgniteAbstractBenchmark
+                                                                 with java.io.Serializable {
+
+  import SparkAbstractBenchmark._
+  var sc: SparkContext = _
+  var sqlContext: HiveContext = _
+
+  var ic: IgniteContext[RddKey, RddVal] = _
+  var icCache: IgniteRDD[RddKey, RddVal] = _
+
+  type ScalarCacheQuerySqlField = QuerySqlField@field
+  type ScalarCacheQueryTextField = QueryTextField@field
+
+
+  @throws(classOf[Exception])
+  override def setUp(cfg: BenchmarkConfiguration) {
+    super.setUp(cfg)
+    sc = new SparkContext("local[2]","itest")
+    sqlContext = new HiveContext(sc)
+     val ic2 = new IgniteContext[RddKey, RddVal](sc,
+      () ⇒ new IgniteConfiguration())
+    val icCache2 = ic2.fromCache(PARTITIONED_CACHE_NAME)
+    super.setUp(cfg)
+
+  }
+
+  @throws(classOf[Exception])
+  override def tearDown() {
+    sc.stop
+
+  }
+
+}
+
 object SparkAbstractBenchmark {
 
   val IP_FINDER = new TcpDiscoveryVmIpFinder(true)
@@ -55,86 +89,6 @@ object SparkAbstractBenchmark {
     cfg.setClientMode(client)
     cfg.setGridName(gridName)
     cfg
-  }
-
-}
-abstract class SparkAbstractBenchmark(cacheName: String) extends IgniteAbstractBenchmark
-                                                                 with java.io.Serializable {
-
-  import SparkAbstractBenchmark._
-  var sc: SparkContext = _
-  var sqlContext: HiveContext = _
-
-  var ic: IgniteContext[RddKey, RddVal] = _
-  var icCache: IgniteRDD[RddKey, RddVal] = _
-
-  type ScalarCacheQuerySqlField = QuerySqlField@field
-  type ScalarCacheQueryTextField = QueryTextField@field
-
-  // Following test is taken from IgniteRDDSpec in the original Ignite distribution
-  def icTest(/*cfg: BenchmarkConfiguration */)   {
-    val sc = new SparkContext("local[*]", "test")
-    val ic = new IgniteContext[String, Entity](sc,
-      () ⇒ new IgniteConfiguration())
-
-    try {
-      val cache: IgniteRDD[String, Entity] = ic.fromCache(cacheConfiguration("client"))
-
-      import ic.sqlContext.implicits._
-
-      cache.savePairs(sc.parallelize(0 to 1000, 2).map(i ⇒ (String.valueOf(i), new Entity(i, "name" + i, i * 100))))
-
-      val df = cache.sql("select id, name, salary from Entity where name = ? and salary = ?", "name50", 5000)
-
-      df.printSchema()
-
-      val res = df.collect()
-
-      assert(res.length == 1, "Invalid result length")
-      assert(50 == res(0)(0), "Invalid result")
-      assert("name50" == res(0)(1), "Invalid result")
-      assert(5000 == res(0)(2), "Invalid result")
-
-      val df0 = cache.sql("select  id, name, salary from Entity").where('NAME === "name50" and 'SALARY === 5000)
-
-      val res0 = df0.collect()
-
-      assert(res0.length == 1, "Invalid result length")
-      assert(50 == res0(0)(0), "Invalid result")
-      assert("name50" == res0(0)(1), "Invalid result")
-      assert(5000 == res0(0)(2), "Invalid result")
-
-      assert(500 == cache.sql("select id from Entity where id > 500").count(), "Invalid count")
-    }
-    finally {
-      sc.stop()
-      ic.close()
-    }
-  }
-
-  @throws(classOf[Exception])
-  override def setUp(cfg: BenchmarkConfiguration) {
-    super.setUp(cfg)
-
-    // Run a test using IgniteRDDSpec from the original Ignite distribution
-//    icTest()
-//
-//    sc = new SparkContext("local[2]","itest")
-//    sqlContext = new HiveContext(sc)
-//    val ic2 = new IgniteContext[RddKey, RddVal](sc,
-//      () ⇒ new IgniteConfiguration())
-//    val icCache2 = ic2.fromCache(PARTITIONED_CACHE_NAME)
-//       icCache2.savePairs(  sc.parallelize({
-//        (0 until 1000).map{ n => (n.toLong, s"I am $n")}
-//          }, 10)) // .persist()
-//      println(icCache2.collect)
-
-  }
-
-  @throws(classOf[Exception])
-  override def tearDown() {
-    sc.stop
-
   }
 
 }
