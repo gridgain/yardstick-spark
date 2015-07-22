@@ -49,7 +49,7 @@ class SparkIgniteSqlBenchmark extends SparkIgniteAbstractBenchmark {
   override def setUp(cfg: BenchmarkConfiguration): Unit = {
     super.setUp(cfg)
     val configFile = cfg.customProperties.asScala
-      .getOrElse("SQL_CONFIG_FILE", "config/benchmark-twitter.yml")
+      .getOrElse("SQL_CONFIG_FILE", "/mnt/thirdeye/yardstick-spark/config/benchmark-twitter.yml")
     sqlConfig = new YamlConfiguration(configFile)
     println(sqlConfig)
     val csvFile = sqlConfig("twitter.input.file").getOrElse("Twitter_Data.csv")
@@ -60,6 +60,8 @@ class SparkIgniteSqlBenchmark extends SparkIgniteAbstractBenchmark {
   @throws(classOf[java.lang.Exception])
   override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
 
+   // cache.sql(sqlConfig("twitter.sql.orderby",
+   ///   """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin))
     val runResults = timer("Twitter-Data-IgniteSQL") {
       SqlTestMatrix.runMatrix(SqlBatteryConfigs(cache,sqlContext,sqlConfig,true))
     }

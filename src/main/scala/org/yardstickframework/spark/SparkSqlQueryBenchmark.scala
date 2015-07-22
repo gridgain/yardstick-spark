@@ -49,13 +49,9 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
 
   @throws(classOf[java.lang.Exception])
   override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
-     timer("Twitter-Data-SparkSQL") {
+    timer("Twitter-Data-SparkSQL") {
       SqlTestMatrix.runMatrix(SqlBatteryConfigs(cache,sqlContext,sqlConfig,false))
     }
-    timer("Twitter-Data-IgniteSQL") {
-      SqlTestMatrix.runMatrix(SqlBatteryConfigs(cache,sqlContext,sqlConfig,true))
-    }
-
     true
   }
 }

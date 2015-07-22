@@ -67,23 +67,23 @@ class SqlBattery(sqlBatteryConfigs: SqlBatteryConfigs,
     val xformRdds = if (sqlBatteryConfigs.useIgnite) {
       Seq(
         (s"$testName/COUNT", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
-          """COUNT(*)""".stripMargin))),
+          """SELECT COUNT(*) from Twitter""".stripMargin))),
         (s"$testName/ORDERBY", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
-          """ORDER BY""".stripMargin))),
+          """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin))),
         (s"$testName/GROUPBY", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
-          """GROUP BY""".stripMargin))),
+          """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at  limit 50""".stripMargin))),
         (s"$testName/JOIN", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.join",
-          """JOIN TWO TABLES""".stripMargin))))
+          """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin))))
     } else {
       Seq(
         (s"$testName/COUNT", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
-          """COUNT(*)""".stripMargin))),
+          """SELECT COUNT(*) from Twitter""".stripMargin))),
         (s"$testName/ORDERBY", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
-          """ORDER BY""".stripMargin))),
+          """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin))),
         (s"$testName/GROUPBY", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
-          """GROUP BY""".stripMargin))),
+          """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at  limit 50""".stripMargin))),
         (s"$testName/JOIN", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.join",
-          """JOIN TWO TABLES""".stripMargin))))
+          """JSELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin))))
     }
     val actions = Seq(SqlCollect, SqlCollectAsList)
     val res = for ((name, rdd) <- xformRdds) yield {
