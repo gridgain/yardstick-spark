@@ -51,9 +51,9 @@ abstract class SparkAbstractBenchmark(cacheName: String) extends IgniteAbstractB
     super.setUp(cfg)
     sc = new SparkContext("local[2]","itest")
     sqlContext = new HiveContext(sc)
-     val ic2 = new IgniteContext[RddKey, RddVal](sc,
+     ic = new IgniteContext[RddKey, RddVal](sc,
       () ⇒ new IgniteConfiguration())
-    val icCache2 = ic2.fromCache(PARTITIONED_CACHE_NAME)
+    icCache = ic.fromCache(PARTITIONED_CACHE_NAME)
     super.setUp(cfg)
 
   }
