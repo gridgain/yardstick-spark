@@ -5,11 +5,10 @@ twitter.sql.groupby : |
 twitter.sql.orderby : |
   SELECT created_at, COUNT(tweet) as count1 FROM Twitter
   GROUP BY created_at ORDER BY count1  limit 50
+twitter.sql.join : |
+SELECT e.username AS userName, m.tweet AS tweetText FROM Twitter e INNER JOIN Twitter m ON e.id = m.id;
 twitter.sql.count : |
   SELECT COUNT(*) from Twitter
-twitter.sql.join : |
-  SELECT created_at, COUNT(tweet) as count1 FROM Twitter
-  GROUP BY created_at ORDER BY count1  limit 50
 twitter.output.file : /tmp/twitter.out
 twitter.output.parquetfile : /tmp/twitterP.out
 twitter.output.textfile : /tmp/twitterT.out

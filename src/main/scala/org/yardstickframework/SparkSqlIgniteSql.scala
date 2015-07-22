@@ -2,10 +2,10 @@ package org.yardstickframework
 
 import org.apache.ignite.spark.{IgniteRDD}
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.storage.StorageLevel
 import org.yardstickframework.ignite.util._
 import org.yardstickframework.spark.{SparkIgniteAbstractBenchmark, SqlBatteryConfigs, SqlTestMatrix}
-import org.yardstickframework.spark.util.YamlConfiguration
-import org.yardstickframework.spark.util.{TimerArray}
+import org.yardstickframework.spark.util.{LoadFunctions, YamlConfiguration, TimerArray}
 import collection.JavaConverters._
 
 class SparkSqlIgniteSql extends SparkIgniteAbstractBenchmark {
@@ -26,13 +26,20 @@ class SparkSqlIgniteSql extends SparkIgniteAbstractBenchmark {
     val csvFile = sqlConfig("twitter.input.file").getOrElse("Twitter_Data.csv")
     cache = new CommonFunctions().getIgniteCacheConfig(sc)
     new CommonFunctions().loadDataInToIgniteRDD(sc, cache, csvFile, "\t")
+
+    val df = LoadFunctions.loadDataCSVFile(sqlContext, csvFile, "\t")
+    df.registerTempTable("Twitter")
+    df.persist(StorageLevel.MEMORY_ONLY)
   }
 
   @throws(classOf[java.lang.Exception])
   override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
 
-    val runResults = timer("Twitter-Data-IgniteSQL") {
+    timer("Twitter-Data-IgniteSQL") {
       SqlTestMatrix.runMatrix(SqlBatteryConfigs(cache,sqlContext,sqlConfig,true))
+    }
+    timer("Twitter-Data-SparkSQL") {
+      SqlTestMatrix.runMatrix(SqlBatteryConfigs(cache,sqlContext,sqlConfig,false))
     }
     true
   }
