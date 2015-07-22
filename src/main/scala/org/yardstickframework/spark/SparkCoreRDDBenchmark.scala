@@ -18,7 +18,6 @@ package org.yardstickframework.spark
 
 import org.apache.ignite.configuration.IgniteConfiguration
 import org.apache.ignite.spark.{IgniteContext, IgniteRDD}
-import org.apache.spark.SparkContext
 import org.yardstickframework._
 import org.yardstickframework.spark.util.TimerArray
 
