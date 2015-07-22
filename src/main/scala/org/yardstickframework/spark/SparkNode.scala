@@ -17,15 +17,17 @@ package org.yardstickframework.spark
  * limitations under the License.
  */
 
+import org.apache.ignite.{Ignite, Ignition}
 import org.yardstickframework.{BenchmarkConfiguration, BenchmarkServer}
 
 class SparkNode extends BenchmarkServer {
 
+  var ignition : Ignite = _
   override def usage(): String = { "I feel used up" }
 
   @throws[Exception]
-    override def start(cfg: BenchmarkConfiguration){
-       SparkCoreRDDBenchmark.main(null)
+    override def start(cfg: BenchmarkConfiguration): Unit ={
+        ignition = Ignition.start("config/example-cache.xml")
     }
 
     @throws[Exception]

@@ -47,15 +47,12 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <yardstick.version>RELEASE</yardstick.version>
-        <ignite.version>1.1.3-SNAPSHOT</ignite.version>
+        <ignite.version>1.2.0-incubating</ignite.version>
         <scala.version>2.11</scala.version>
         <scala.binary.version>2.11.2</scala.binary.version>
         <spark.version>1.3.1</spark.version>
     </properties>
 
-    <!--
-        Uncomment this if Enterprise Edition is used.
-    -->
     <repositories>
         <repository>
             <id>Maven snapshots repository</id>
@@ -64,7 +61,14 @@
     </repositories>
 
     <dependencies>
-        <dependency>
+       <dependency>
+            <groupId>org.yardstickframework.gridgain</groupId>
+            <artifactId>yardstick-ignite</artifactId>
+            <scope>system</scope>
+            <systemPath>${basedir}/libs/ignite-yardstick-0.1.0.jar</systemPath>
+            <version>0.1.0</version>
+       </dependency>
+       <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
             <version>1.32</version>
@@ -86,11 +90,6 @@
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>1.15</version>
-        </dependency>
-        <dependency>
-            <groupId>com.databricks</groupId>
-            <artifactId>spark-csv_2.10</artifactId>
-            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -225,6 +224,8 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <scalaCompatVersion>${scala.version}</scalaCompatVersion>
+                    <scalaVersion>${scala.binary.version}</scalaVersion>
                     <jvmArgs>
                         <jvmArg>-Xms512m</jvmArg>
                         <jvmArg>-Xmx1024m</jvmArg>

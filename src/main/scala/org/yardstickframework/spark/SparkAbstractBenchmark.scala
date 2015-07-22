@@ -14,51 +14,39 @@
 
 package org.yardstickframework.spark
 
-import org.apache.ignite.Ignition
 import org.apache.ignite.cache.CacheMode
-import org.apache.ignite.cache.query.annotations.{QueryTextField, QuerySqlField}
+import org.apache.ignite.cache.query.annotations.{QuerySqlField, QueryTextField}
 import org.apache.ignite.configuration.{CacheConfiguration, IgniteConfiguration}
 import org.apache.ignite.scalar.scalar._
-import org.apache.ignite.spark.{IgniteRDD, IgniteContext}
+import org.apache.ignite.spark.{IgniteContext, IgniteRDD}
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder
+import org.apache.ignite.yardstick.IgniteAbstractBenchmark
 import org.apache.spark._
-import org.apache.spark.sql.SQLContext
-import org.yardstickframework._
 import org.apache.spark.sql.hive.HiveContext
-import org.yardstickframework.spark.YsSparkTypes.{RddKey, RddVal, RddTuple}
+import org.yardstickframework._
+import org.yardstickframework.spark.YsSparkTypes.{RddKey, RddVal}
+
 import scala.annotation.meta.field
 
 case class IcInfo(ic: IgniteContext[RddKey, RddVal], icCache: IgniteRDD[RddKey, RddVal])
 case class Entity(@ScalarCacheQuerySqlField id: Int, @ScalarCacheQuerySqlField name: String,@ScalarCacheQuerySqlField salary: Int)
 
-abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriverAdapter
-                                                                 with java.io.Serializable {
-  var sc: SparkContext = _
-  var ic: IgniteContext[RddKey, RddVal] = _
-  var icCache: IgniteRDD[RddKey, RddVal] = _
-  var sqlContext: HiveContext = _
+object SparkAbstractBenchmark {
 
   val IP_FINDER = new TcpDiscoveryVmIpFinder(true)
-
-  /** Partitioned cache name. */
   val PARTITIONED_CACHE_NAME = "partitioned"
 
-  /** Type alias for `QuerySqlField`. */
-  type ScalarCacheQuerySqlField = QuerySqlField@field
+  def cacheConfiguration(gridName: String): CacheConfiguration[String, Entity] = {
+    val ccfg = new CacheConfiguration[String, Entity]()
+    ccfg.setBackups(1)
+    ccfg.setName(PARTITIONED_CACHE_NAME)
+    ccfg.setCacheMode(CacheMode.PARTITIONED)
+    ccfg.setIndexedTypes(classOf[String], classOf[Entity])
+    ccfg
+  }
 
-  /** Type alias for `QueryTextField`. */
-  type ScalarCacheQueryTextField = QueryTextField@field
-
-  /**
-   * Gets ignite configuration.
-   *
-   * @param gridName Grid name.
-   * @param client Client mode flag.
-   * @return Ignite configuration.
-   */
-  def configuration(gridName: String, client: Boolean): IgniteConfiguration = {
-    sc = new SparkContext("local[*]", "test")
+  def configuration(gridName: String = "SparkGrid", client: Boolean = true): IgniteConfiguration = {
     val cfg = new IgniteConfiguration
     val discoSpi = new TcpDiscoverySpi
     discoSpi.setIpFinder(IP_FINDER)
@@ -69,33 +57,27 @@ abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriver
     cfg
   }
 
-  /**
-   * Gets cache configuration for the given grid name.
-   *
-   * @param gridName Grid name.
-   * @return Cache configuration.
-   */
-  def cacheConfiguration(gridName: String): CacheConfiguration[String, Entity] = {
-    val ccfg = new CacheConfiguration[String, Entity]()
-    ccfg.setBackups(1)
-    ccfg.setName(PARTITIONED_CACHE_NAME)
-    ccfg.setCacheMode(CacheMode.PARTITIONED)
-    ccfg.setIndexedTypes(classOf[String], classOf[Entity])
-    ccfg
-  }
+}
+abstract class SparkAbstractBenchmark(cacheName: String) extends IgniteAbstractBenchmark
+                                                                 with java.io.Serializable {
 
+  import SparkAbstractBenchmark._
+  var sc: SparkContext = _
+  var sqlContext: HiveContext = _
 
+  var ic: IgniteContext[RddKey, RddVal] = _
+  var icCache: IgniteRDD[RddKey, RddVal] = _
+
+  type ScalarCacheQuerySqlField = QuerySqlField@field
+  type ScalarCacheQueryTextField = QueryTextField@field
 
   // Following test is taken from IgniteRDDSpec in the original Ignite distribution
-  def icTest(cfg: BenchmarkConfiguration)   {
+  def icTest(/*cfg: BenchmarkConfiguration */)   {
     val sc = new SparkContext("local[*]", "test")
-    val ignition  = Ignition.start("config/example-cache.xml")
     val ic = new IgniteContext[String, Entity](sc,
       () ⇒ new IgniteConfiguration())
 
     try {
-
-
       val cache: IgniteRDD[String, Entity] = ic.fromCache(cacheConfiguration("client"))
 
       import ic.sqlContext.implicits._
@@ -133,16 +115,14 @@ abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriver
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration) {
     super.setUp(cfg)
+
     // Run a test using IgniteRDDSpec from the original Ignite distribution
-    icTest(cfg)
+    icTest()
 
-    sc = new SparkContext("local[4]", "BenchmarkTest")
+    sc = new SparkContext("local[2]","itest")
     sqlContext = new HiveContext(sc)
-
-    val ignition  = Ignition.start("config/example-cache.xml")
     val ic2 = new IgniteContext[RddKey, RddVal](sc,
       () ⇒ new IgniteConfiguration())
-    import ic2.sqlContext.implicits._
     val icCache2 = ic2.fromCache(PARTITIONED_CACHE_NAME)
        icCache2.savePairs(  sc.parallelize({
         (0 until 1000).map{ n => (n.toLong, s"I am $n")}
@@ -158,4 +138,3 @@ abstract class SparkAbstractBenchmark(cacheName: String) extends BenchmarkDriver
   }
 
 }
-

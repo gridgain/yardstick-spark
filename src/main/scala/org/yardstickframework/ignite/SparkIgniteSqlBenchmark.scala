@@ -24,7 +24,7 @@ import org.apache.spark.sql.hive.HiveContext
 import org.yardstickframework._
 import org.yardstickframework.ignite.util._
 import org.apache.ignite.configuration._
-import org.yardstickframework.spark.{SqlBatteryConfigs, SqlTestMatrix, SqlBattery}
+import org.yardstickframework.spark.{SparkIgniteAbstractBenchmark, SqlBatteryConfigs, SqlTestMatrix, SqlBattery}
 import org.yardstickframework.spark.util.YamlConfiguration
 import org.yardstickframework.spark.util.{TimerArray, StorageFunctions}
 
@@ -37,7 +37,7 @@ import org.apache.ignite.{Ignite, IgniteCache}
 
 import collection.JavaConverters._
 
-class IgniteSqlBenchmark extends IgniteAbstractBenchmark {
+class SparkIgniteSqlBenchmark extends SparkIgniteAbstractBenchmark {
 
   var sqlConfig: YamlConfiguration = _
   var cache: IgniteRDD[String, Twitter] = _
@@ -68,9 +68,9 @@ class IgniteSqlBenchmark extends IgniteAbstractBenchmark {
 
 }
 
-object IgniteSqlBenchmark {
+object SparkIgniteSqlBenchmark {
   def main(args: Array[String]) {
-    val b = new IgniteSqlBenchmark
+    val b = new SparkIgniteSqlBenchmark
     b.setUp(new BenchmarkConfiguration())
     b.test(new java.util.HashMap[AnyRef, AnyRef]())
 

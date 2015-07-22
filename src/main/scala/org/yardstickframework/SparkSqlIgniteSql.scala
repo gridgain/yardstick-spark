@@ -1,18 +1,14 @@
 package org.yardstickframework
 
-/**
- * Created by sany on 21/7/15.
- */
 import org.apache.ignite.spark.{IgniteRDD}
 import org.apache.spark.sql.DataFrame
-import org.yardstickframework.ignite.IgniteAbstractBenchmark
 import org.yardstickframework.ignite.util._
-import org.yardstickframework.spark.{SqlBatteryConfigs, SqlTestMatrix}
+import org.yardstickframework.spark.{SparkIgniteAbstractBenchmark, SqlBatteryConfigs, SqlTestMatrix}
 import org.yardstickframework.spark.util.YamlConfiguration
 import org.yardstickframework.spark.util.{TimerArray}
 import collection.JavaConverters._
 
-class SparkSqlIgniteSql extends IgniteAbstractBenchmark {
+class SparkSqlIgniteSql extends SparkIgniteAbstractBenchmark {
 
   var sqlConfig: YamlConfiguration = _
   var cache: IgniteRDD[String, Twitter] = _
