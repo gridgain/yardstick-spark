@@ -18,6 +18,7 @@ package org.yardstickframework.spark
 
 import java.io.Serializable
 
+import org.apache.ignite.spark.{IgniteContext, IgniteRDD}
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
@@ -80,7 +81,7 @@ class FileDataGenerator(sc: SparkContext, dataParams: GenDataParams, path: Strin
   }
 }) {}
 
-class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataParams: GenDataParams)
+class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIgnite: Boolean)
   extends DataGenerator(dataParams, None) {
   override def genData(optMinIn: Option[Long] = dataParams.optMin, optMaxIn: Option[Long] = dataParams.optMax) = {
 
@@ -100,14 +101,28 @@ class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataP
       println(s"len(words) is ${words.length}")
       val nWords = words.size
     }
+    val cacheName = "partitioned"
+    //    val PARTITIONED_CACHE_NAME = "partitioned"
 
     val bcData = sc.broadcast(dataToBc)
-    val rdd = if (optIcInfo.isDefined) {
+    val rdd = if (useIgnite) {
+      import reflect.runtime.universe._
+      type RddK = RddKey
+      type RddV = RddVal
+      val ic = new IgniteContext[RddK, RddV](sc,
+        () ⇒ SparkAbstractBenchmark.configuration[TypeTag[RddKey], TypeTag[RddVal]](cacheName))
+      import ic.sqlContext.implicits._
+      val cache: IgniteRDD[Long, String] = ic.
+        fromCache(new TestCacheConfiguration[Long, String]().cacheConfiguration(cacheName))
+
+      cache.savePairs(sc.parallelize(Seq(0 until 10000).flatten.map { x => (x.toLong, s"Hello: $x") }, 10))
+
       val localData = sc.parallelize({
         val dataStruct = dataToBc // bcData.value
         def nextLong(rng: java.util.Random, n: Long) = {
           var bits = 1L
           var out = 1L
+
           do {
             bits = (rng.nextLong() << 1) >>> 1
             out = bits % n
@@ -128,10 +143,11 @@ class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataP
         }
         out
       }, dataToBc.nPartitions).persist()
-//      val localData2 = sc.parallelize(Seq(0 until 10000).flatten.map{ x => (""+x,Entity(x,s"Hello: $x",x*1000)) },10)
-      val localData2 = sc.parallelize(Seq(0 until 10000).flatten.map{ x => (x.toLong,s"Hello: $x") },10)
-      optIcInfo.get.icCache.savePairs(localData2)
-      optIcInfo.get.icCache
+      //      val localData2 = sc.parallelize(Seq(0 until 10000).flatten.map{ x => (""+x,Entity(x,s"Hello: $x",x*1000)) },10)
+      val localData2 = sc.parallelize(Seq(0 until 10000).flatten.map { x => (x.toLong, s"Hello: $x") }, 10)
+      //      optIcInfo.get.icCache.savePairs(localData2)
+      cache.savePairs(sc.parallelize(Seq(0 until 10000).flatten.map { x => (x.toLong, s"Hello: $x") }, 10))
+      cache
     } else {
       val rddSeq = sc.parallelize((0 until dataParams.nPartitions).toSeq, dataParams.nPartitions)
       val rdd = rddSeq.mapPartitionsWithIndex { case (partx, iter) =>

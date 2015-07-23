@@ -33,7 +33,7 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey,RddVal]("core"
   }
 
   def depthTests(): Boolean = {
-    val (pass, tresults) = CoreTestMatrix.runMatrix(sc,IcInfo(ic,icCache))
+    val (pass, tresults) = CoreTestMatrix.runMatrix(sc  /*IcInfo(ic,icCache)*/)
     pass
   }
 

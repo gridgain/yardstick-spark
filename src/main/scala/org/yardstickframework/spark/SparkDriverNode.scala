@@ -17,18 +17,17 @@ package org.yardstickframework.spark
  * limitations under the License.
  */
 
-import org.apache.ignite.yardstick.IgniteNode
-import org.apache.ignite.{Ignite, Ignition}
-import org.yardstickframework.{BenchmarkConfiguration, BenchmarkServer}
+import org.apache.ignite.Ignite
+import org.apache.ignite.yardstick.{IgniteDriverNode, IgniteNode}
+import org.yardstickframework.BenchmarkConfiguration
 
-class SparkNode extends IgniteNode {
+class SparkDriverNode(clientMode: Boolean) extends IgniteDriverNode(clientMode) {
 
   var ignition : Ignite = _
 
   @throws[Exception]
     override def start(cfg: BenchmarkConfiguration): Unit ={
     super.start(cfg)
-//        ignition = Ignition.start(SparkAbstractBenchmark.configuration())
     }
 
 }

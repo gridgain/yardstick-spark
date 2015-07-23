@@ -30,10 +30,7 @@ import org.yardstickframework.spark.YsSparkTypes.{RddKey, RddVal}
 import scala.annotation.meta.field
 import scala.reflect.runtime.universe._
 
-//case class IcInfo(ic: IgniteContext[RddKey, RddVal], icCache: IgniteRDD[String, Entity])
-case class IcInfo(ic: IgniteContext[RddKey, RddVal], icCache: IgniteRDD[Long, String])
 case class Entity(@ScalarCacheQuerySqlField id: Int, @ScalarCacheQuerySqlField name: String,@ScalarCacheQuerySqlField salary: Int)
-
 abstract class SparkAbstractBenchmark[RddK,RddV](cacheName: String)
   (implicit rddK : TypeTag[RddK], rddV: TypeTag[RddV]) extends IgniteAbstractBenchmark
                                                                  with java.io.Serializable {
@@ -41,13 +38,9 @@ abstract class SparkAbstractBenchmark[RddK,RddV](cacheName: String)
   var sc: SparkContext = _
   var sqlContext: HiveContext = _
 
-  var ic: IgniteContext[RddK, RddV] = _
-  var icCache: IgniteRDD[RddK, RddV] = _
-
   type ScalarCacheQuerySqlField = QuerySqlField@field
   type ScalarCacheQueryTextField = QueryTextField@field
 
-  val IP_FINDER = new TcpDiscoveryVmIpFinder(true)
   val PARTITIONED_CACHE_NAME = "partitioned"
   val CORE_CACHE_NAME = "core"
 
@@ -56,24 +49,8 @@ abstract class SparkAbstractBenchmark[RddK,RddV](cacheName: String)
     super.setUp(cfg)
     sc = new SparkContext("local[2]","itest")
     sqlContext = new HiveContext(sc)
-     ic = new IgniteContext[RddK, RddV](sc,
-      () ⇒ configuration(cacheName))
-    icCache = ic.fromCache(cacheName)
-    super.setUp(cfg)
+//    super.setUp(cfg)
   }
-
-  def configuration(gridName: String = "SparkGrid", client: Boolean = true): IgniteConfiguration = {
-    val cfg = new IgniteConfiguration
-    val discoSpi = new TcpDiscoverySpi
-    discoSpi.setIpFinder(IP_FINDER)
-    cfg.setDiscoverySpi(discoSpi)
-    cfg.setCacheConfiguration(new TestCacheConfiguration[RddK, RddV]()
-      .cacheConfiguration(gridName))
-    cfg.setClientMode(client)
-    cfg.setGridName(gridName)
-    cfg
-  }
-
 
   @throws(classOf[Exception])
   override def tearDown() {
@@ -81,6 +58,22 @@ abstract class SparkAbstractBenchmark[RddK,RddV](cacheName: String)
   }
 }
 
+object SparkAbstractBenchmark {
+  val IP_FINDER = new TcpDiscoveryVmIpFinder(true)
+  def configuration[RddK,RddV](gridName: String = "SparkGrid", client: Boolean = true)
+    (implicit rddK : TypeTag[RddK], rddV: TypeTag[RddV]): IgniteConfiguration = {
+    val cfg = new IgniteConfiguration
+    val discoSpi = new TcpDiscoverySpi
+    discoSpi.setIpFinder(IP_FINDER)
+    cfg.setDiscoverySpi(discoSpi)
+    cfg.setCacheConfiguration(new TestCacheConfiguration[TypeTag[RddK], TypeTag[RddV]]()
+      .cacheConfiguration(gridName))
+    cfg.setClientMode(client)
+    cfg.setGridName(gridName)
+    cfg
+  }
+
+}
 class TestCacheConfiguration[RddK,RddV] {
   def cacheConfiguration(gridName: String)
   (implicit rddK : TypeTag[RddK], rddV: TypeTag[RddV]): CacheConfiguration[RddK, RddV] = {

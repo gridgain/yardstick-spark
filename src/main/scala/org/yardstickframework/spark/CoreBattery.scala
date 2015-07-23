@@ -41,7 +41,7 @@ case class TestMatrixSpec(name: String, version: String, genDataParams: GenDataP
 
 object CoreTestMatrix {
   val A = Array
-  def runMatrix(sc: SparkContext, icInfo: IcInfo) = {
+  def runMatrix(sc: SparkContext /*, icInfo: IcInfo*/) = {
     val testDims = new {
 //      var nRecords = A(10000, 1000000, 10000000)
       var nRecords = A(100000 , 1000000 /*, 10000000 */)
@@ -65,10 +65,9 @@ object CoreTestMatrix {
       val name = s"$tname ${nRecs}recs ${nPartitions}parts ${skew}skew ${igniteOrNative}"
       val dir = name.replace(" ","/")
       val mat = TestMatrixSpec("core-smoke", "0.1", GenDataParams(nRecs, nPartitions, Some(testDims.min), Some(testDims.max), Some(skew) ))
-      val optIcInfo = if (useIgnite) Some(icInfo) else None
-      val dgen = new SingleSkewDataGenerator(sc, optIcInfo, mat.genDataParams)
+      val dgen = new SingleSkewDataGenerator(sc, mat.genDataParams, useIgnite)
       val rdd = dgen.genData()
-      val battery = new CoreBattery(sc, optIcInfo, name, dir, rdd)
+      val battery = new CoreBattery(sc, name, dir, rdd)
       val (pass, tresults) = battery.runBattery()
       passArr += pass
       resArr ++= tresults
@@ -77,8 +76,8 @@ object CoreTestMatrix {
   }
 }
 
-class CoreBattery(sc: SparkContext, optIcInfo: Option[IcInfo],
-  testName: String, outputDir: String, inputRdd: InputRDD) extends TestBattery("CoreBattery", s"$outputDir/$testName") {
+class CoreBattery(sc: SparkContext, testName: String, outputDir: String,
+  inputRdd: InputRDD) extends TestBattery("CoreBattery", s"$outputDir/$testName") {
   assert(inputRdd != null,"Hey null RDD's are not cool")
   override def runBattery() = {
     val xformRdds = Seq(

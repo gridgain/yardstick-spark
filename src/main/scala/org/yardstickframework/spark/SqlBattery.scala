@@ -1,10 +1,5 @@
 package org.yardstickframework.spark
 
-/**
- * Created by sany on 21/7/15.
- */
-
-
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -47,17 +42,6 @@ object SqlTestMatrix {
   }
 }
 
-object SqlBattery {
-
-  def runBattery(): Unit = {
-
-  }
-
-  def main(args: Array[String]) {
-
-  }
-}
-
 class SqlBattery(sqlBatteryConfigs: SqlBatteryConfigs,
                  testName: String, outputDir: String) extends TestBattery("SqlBattery", s"$outputDir/$testName") {
   assert(testName != null, "Hey null's are not cool")
@@ -91,8 +75,6 @@ class SqlBattery(sqlBatteryConfigs: SqlBatteryConfigs,
     val res = for ((name, rdd) <- xformRdds) yield {
       runXformTests(name, rdd, actions)
     }
-
-
 
     // TODO: determine a pass/fail instead of returning true
     (true, (res).flatten)
