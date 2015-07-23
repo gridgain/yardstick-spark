@@ -28,56 +28,38 @@ import org.yardstickframework._
 import org.yardstickframework.spark.YsSparkTypes.{RddKey, RddVal}
 
 import scala.annotation.meta.field
+import scala.reflect.runtime.universe._
 
-case class IcInfo(ic: IgniteContext[RddKey, RddVal], icCache: IgniteRDD[RddKey, RddVal])
+//case class IcInfo(ic: IgniteContext[RddKey, RddVal], icCache: IgniteRDD[String, Entity])
+case class IcInfo(ic: IgniteContext[RddKey, RddVal], icCache: IgniteRDD[Long, String])
 case class Entity(@ScalarCacheQuerySqlField id: Int, @ScalarCacheQuerySqlField name: String,@ScalarCacheQuerySqlField salary: Int)
 
-abstract class SparkAbstractBenchmark(cacheName: String) extends IgniteAbstractBenchmark
+abstract class SparkAbstractBenchmark[RddK,RddV](cacheName: String)
+  (implicit rddK : TypeTag[RddK], rddV: TypeTag[RddV]) extends IgniteAbstractBenchmark
                                                                  with java.io.Serializable {
 
-  import SparkAbstractBenchmark._
   var sc: SparkContext = _
   var sqlContext: HiveContext = _
 
-  var ic: IgniteContext[RddKey, RddVal] = _
-  var icCache: IgniteRDD[RddKey, RddVal] = _
+  var ic: IgniteContext[RddK, RddV] = _
+  var icCache: IgniteRDD[RddK, RddV] = _
 
   type ScalarCacheQuerySqlField = QuerySqlField@field
   type ScalarCacheQueryTextField = QueryTextField@field
 
+  val IP_FINDER = new TcpDiscoveryVmIpFinder(true)
+  val PARTITIONED_CACHE_NAME = "partitioned"
+  val CORE_CACHE_NAME = "core"
 
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration) {
     super.setUp(cfg)
     sc = new SparkContext("local[2]","itest")
     sqlContext = new HiveContext(sc)
-     ic = new IgniteContext[RddKey, RddVal](sc,
-      () ⇒ new IgniteConfiguration())
-    icCache = ic.fromCache(PARTITIONED_CACHE_NAME)
+     ic = new IgniteContext[RddK, RddV](sc,
+      () ⇒ configuration(cacheName))
+    icCache = ic.fromCache(cacheName)
     super.setUp(cfg)
-
-  }
-
-  @throws(classOf[Exception])
-  override def tearDown() {
-    sc.stop
-
-  }
-
-}
-
-object SparkAbstractBenchmark {
-
-  val IP_FINDER = new TcpDiscoveryVmIpFinder(true)
-  val PARTITIONED_CACHE_NAME = "partitioned"
-
-  def cacheConfiguration(gridName: String): CacheConfiguration[String, Entity] = {
-    val ccfg = new CacheConfiguration[String, Entity]()
-    ccfg.setBackups(1)
-    ccfg.setName(PARTITIONED_CACHE_NAME)
-    ccfg.setCacheMode(CacheMode.PARTITIONED)
-    ccfg.setIndexedTypes(classOf[String], classOf[Entity])
-    ccfg
   }
 
   def configuration(gridName: String = "SparkGrid", client: Boolean = true): IgniteConfiguration = {
@@ -85,10 +67,29 @@ object SparkAbstractBenchmark {
     val discoSpi = new TcpDiscoverySpi
     discoSpi.setIpFinder(IP_FINDER)
     cfg.setDiscoverySpi(discoSpi)
-    cfg.setCacheConfiguration(cacheConfiguration(gridName))
+    cfg.setCacheConfiguration(new TestCacheConfiguration[RddK, RddV]()
+      .cacheConfiguration(gridName))
     cfg.setClientMode(client)
     cfg.setGridName(gridName)
     cfg
   }
 
+
+  @throws(classOf[Exception])
+  override def tearDown() {
+    sc.stop
+  }
+}
+
+class TestCacheConfiguration[RddK,RddV] {
+  def cacheConfiguration(gridName: String)
+  (implicit rddK : TypeTag[RddK], rddV: TypeTag[RddV]): CacheConfiguration[RddK, RddV] = {
+    val ccfg = new CacheConfiguration[RddK, RddV]()
+    ccfg.setBackups(1)
+    ccfg.setName(gridName)
+    ccfg.setCacheMode(CacheMode.PARTITIONED)
+    ccfg.setIndexedTypes(rddK.mirror.runtimeClass(rddK.tpe.typeSymbol.asClass),
+      rddV.mirror.runtimeClass(rddV.tpe.typeSymbol.asClass))
+    ccfg
+  }
 }

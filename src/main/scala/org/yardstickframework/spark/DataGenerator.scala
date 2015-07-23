@@ -104,7 +104,7 @@ class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataP
     val bcData = sc.broadcast(dataToBc)
     val rdd = if (optIcInfo.isDefined) {
       val localData = sc.parallelize({
-        val dataStruct = bcData.value
+        val dataStruct = dataToBc // bcData.value
         def nextLong(rng: java.util.Random, n: Long) = {
           var bits = 1L
           var out = 1L
@@ -128,7 +128,9 @@ class SingleSkewDataGenerator(sc: SparkContext, optIcInfo: Option[IcInfo], dataP
         }
         out
       }, dataToBc.nPartitions).persist()
-      optIcInfo.get.icCache.savePairs(localData)
+//      val localData2 = sc.parallelize(Seq(0 until 10000).flatten.map{ x => (""+x,Entity(x,s"Hello: $x",x*1000)) },10)
+      val localData2 = sc.parallelize(Seq(0 until 10000).flatten.map{ x => (x.toLong,s"Hello: $x") },10)
+      optIcInfo.get.icCache.savePairs(localData2)
       optIcInfo.get.icCache
     } else {
       val rddSeq = sc.parallelize((0 until dataParams.nPartitions).toSeq, dataParams.nPartitions)

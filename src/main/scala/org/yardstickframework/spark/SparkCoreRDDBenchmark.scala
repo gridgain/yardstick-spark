@@ -19,11 +19,11 @@ package org.yardstickframework.spark
 import org.apache.ignite.configuration.IgniteConfiguration
 import org.apache.ignite.spark.{IgniteContext, IgniteRDD}
 import org.yardstickframework._
+import org.yardstickframework.spark.YsSparkTypes.{RddKey, RddVal}
 import org.yardstickframework.spark.util.TimerArray
 
-class SparkCoreRDDBenchmark extends SparkAbstractBenchmark("CoreRDDTests") {
+class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey,RddVal]("core") {
 
-  import SparkAbstractBenchmark._
   val timer = new TimerArray(cfg)
 
   @throws(classOf[Exception])
@@ -38,13 +38,16 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark("CoreRDDTests") {
   }
 
   // Following test is taken from IgniteRDDSpec in the original Ignite distribution
-  def icTest(/*cfg: BenchmarkConfiguration */)   {
+  def icTest()   {
+    type TestKey = String
+    type TestVal = Entity
 //    val sc = new SparkContext("local[*]", "test")
-    val ic = new IgniteContext[String, Entity](sc,
+    val ic = new IgniteContext[TestKey,TestVal](sc,
       () ⇒ new IgniteConfiguration())
 
     try {
-      val cache: IgniteRDD[String, Entity] = ic.fromCache(cacheConfiguration("client"))
+      val cache: IgniteRDD[TestKey,TestVal] = ic.
+        fromCache(new TestCacheConfiguration[String,Entity]().cacheConfiguration("client"))
 
       import ic.sqlContext.implicits._
 
@@ -56,6 +59,7 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark("CoreRDDTests") {
 
       val res = df.collect()
 
+      println(s"Retrieved ${res.size} records. First one is ${res(0).toString}")
       assert(res.length == 1, "Invalid result length")
       assert(50 == res(0)(0), "Invalid result")
       assert("name50" == res(0)(1), "Invalid result")
@@ -79,7 +83,7 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark("CoreRDDTests") {
 
   @throws(classOf[java.lang.Exception])
   override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
-    icTest
+    icTest()
     depthTests()
   }
 }
