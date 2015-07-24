@@ -31,7 +31,7 @@ import scala.annotation.meta.field
 import scala.reflect.runtime.universe._
 
 case class Entity(@ScalarCacheQuerySqlField id: Int, @ScalarCacheQuerySqlField name: String,@ScalarCacheQuerySqlField salary: Int)
-abstract class SparkAbstractBenchmark[RddK,RddV](cacheName: String)
+abstract class SparkAbstractBenchmark[RddK,RddV](val cacheName: String)
   (implicit rddK : TypeTag[RddK], rddV: TypeTag[RddV]) extends IgniteAbstractBenchmark
                                                                  with java.io.Serializable {
 
@@ -41,15 +41,13 @@ abstract class SparkAbstractBenchmark[RddK,RddV](cacheName: String)
   type ScalarCacheQuerySqlField = QuerySqlField@field
   type ScalarCacheQueryTextField = QueryTextField@field
 
-  val PARTITIONED_CACHE_NAME = "partitioned"
-  val CORE_CACHE_NAME = "core"
+//  val PARTITIONED_CACHE_NAME = "partitioned"
 
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration) {
     super.setUp(cfg)
     sc = new SparkContext("local[2]","itest")
     sqlContext = new HiveContext(sc)
-//    super.setUp(cfg)
   }
 
   @throws(classOf[Exception])
@@ -60,7 +58,7 @@ abstract class SparkAbstractBenchmark[RddK,RddV](cacheName: String)
 
 object SparkAbstractBenchmark {
   val IP_FINDER = new TcpDiscoveryVmIpFinder(true)
-  def configuration[RddK,RddV](gridName: String = "SparkGrid", client: Boolean = true)
+  def configuration[RddK,RddV](gridName: String, client: Boolean = true)
     (implicit rddK : TypeTag[RddK], rddV: TypeTag[RddV]): IgniteConfiguration = {
     val cfg = new IgniteConfiguration
     val discoSpi = new TcpDiscoverySpi

@@ -41,7 +41,7 @@ case class TestMatrixSpec(name: String, version: String, genDataParams: GenDataP
 
 object CoreTestMatrix {
   val A = Array
-  def runMatrix(sc: SparkContext /*, icInfo: IcInfo*/) = {
+  def runMatrix(sc: SparkContext, cacheName: String) = {
     val testDims = new {
 //      var nRecords = A(10000, 1000000, 10000000)
       var nRecords = A(100000 , 1000000 /*, 10000000 */)
@@ -65,7 +65,7 @@ object CoreTestMatrix {
       val name = s"$tname ${nRecs}recs ${nPartitions}parts ${skew}skew ${igniteOrNative}"
       val dir = name.replace(" ","/")
       val mat = TestMatrixSpec("core-smoke", "0.1", GenDataParams(nRecs, nPartitions, Some(testDims.min), Some(testDims.max), Some(skew) ))
-      val dgen = new SingleSkewDataGenerator(sc, mat.genDataParams, useIgnite)
+      val dgen = new SingleSkewDataGenerator(sc, mat.genDataParams, useIgnite, if (useIgnite) Some(cacheName) else None)
       val rdd = dgen.genData()
       val battery = new CoreBattery(sc, name, dir, rdd)
       val (pass, tresults) = battery.runBattery()

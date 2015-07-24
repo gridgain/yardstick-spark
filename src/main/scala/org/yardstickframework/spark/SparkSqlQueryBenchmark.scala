@@ -23,9 +23,9 @@ import org.yardstickframework.ignite.util._
 import org.yardstickframework.impl.BenchmarkLoader
 import org.yardstickframework.spark.util.{LoadFunctions, YamlConfiguration, TimerArray}
 import collection.JavaConverters._
+import SparkSqlQueryBenchmark._
 
-
-class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
+class SparkSqlQueryBenchmark extends SparkAbstractBenchmark(SQL_CACHE_NAME) {
 
   var timer: TimerArray = _
   var sqlConfig: YamlConfiguration = _
@@ -57,6 +57,7 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark("query") {
 }
 
 object SparkSqlQueryBenchmark {
+  val SQL_CACHE_NAME = "query"
   def main(args: Array[String]) {
     val b = new SparkSqlQueryBenchmark
     b.setUp(new BenchmarkConfiguration())

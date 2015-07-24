@@ -81,7 +81,8 @@ class FileDataGenerator(sc: SparkContext, dataParams: GenDataParams, path: Strin
   }
 }) {}
 
-class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIgnite: Boolean)
+class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIgnite: Boolean,
+    optCacheName : Option[String] = None)
   extends DataGenerator(dataParams, None) {
   override def genData(optMinIn: Option[Long] = dataParams.optMin, optMaxIn: Option[Long] = dataParams.optMax) = {
 
@@ -101,14 +102,12 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
       println(s"len(words) is ${words.length}")
       val nWords = words.size
     }
-    val cacheName = "partitioned"
-    //    val PARTITIONED_CACHE_NAME = "partitioned"
-
     val bcData = sc.broadcast(dataToBc)
     val rdd = if (useIgnite) {
       import reflect.runtime.universe._
       type RddK = RddKey
       type RddV = RddVal
+      val cacheName = optCacheName.get
       val ic = new IgniteContext[RddK, RddV](sc,
         () ⇒ SparkAbstractBenchmark.configuration[TypeTag[RddKey], TypeTag[RddVal]](cacheName))
       import ic.sqlContext.implicits._
