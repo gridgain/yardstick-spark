@@ -21,6 +21,7 @@ import java.util.Date
 
 import org.apache.spark.SparkContext
 import org.yardstickframework.spark.YsSparkTypes._
+import org.yardstickframework.spark.util.TimerArray
 import org.yardstickframework.spark.util.YardstickLogger._
 
 import scala.collection.mutable
@@ -31,7 +32,9 @@ case class TestResult(testName: String, resultName: String,
 
 abstract class TestBattery(name: String, outdir: String) {
   def setUp(): Unit = {}
+
   def runBattery(): (Boolean, Seq[TestResult])
+
   def tearDown(): Unit = {}
 }
 
@@ -41,12 +44,16 @@ case class TestMatrixSpec(name: String, version: String, genDataParams: GenDataP
 
 object CoreTestMatrix {
   val A = Array
+
   def runMatrix(sc: SparkContext, cacheName: String) = {
     val testDims = new {
-//      var nRecords = A(10000, 1000000, 10000000)
-      var nRecords = A(100000 , 1000000 /*, 10000000 */)
-      var nPartitions =  A(20) // A(10, 100)
-      var firstPartitionSkew = A(10) //  A(/*1, 10, 100)
+//      var nRecords = (1 to 5).toList.map{ x => (1000 *  math.pow(10,x)).toInt }
+      var nRecords = A(/*10*1000, 100*1000, 1000*1000, 10*1000*1000, */ 100*1000*1000)
+      //      var nRecords = A(100000 , 1000000 /*, 10000000 */)
+      var nPartitions = A(20)
+      // A(10, 100)
+      var firstPartitionSkew = A(1)
+      //  A(/*1, 10, 100)
       val min = 0L
       val max = 10000L
     }
@@ -56,15 +63,14 @@ object CoreTestMatrix {
     for (nRecs <- testDims.nRecords;
          nPartitions <- testDims.nPartitions;
          skew <- testDims.firstPartitionSkew;
-//         useIgnite <- A(false /*,true */)) {
-         useIgnite <- A(true )) {
+         useIgnite <- A(false, true)) {
 
       val rawname = "CoreSmoke"
       val tname = s"$dtf/$rawname"
       val igniteOrNative = if (useIgnite) "ignite" else "native"
       val name = s"$tname ${nRecs}recs ${nPartitions}parts ${skew}skew ${igniteOrNative}"
-      val dir = name.replace(" ","/")
-      val mat = TestMatrixSpec("core-smoke", "0.1", GenDataParams(nRecs, nPartitions, Some(testDims.min), Some(testDims.max), Some(skew) ))
+      val dir = name.replace(" ", "/")
+      val mat = TestMatrixSpec("core-smoke", "0.1", GenDataParams(nRecs, nPartitions, Some(testDims.min), Some(testDims.max), Some(skew)))
       val dgen = new SingleSkewDataGenerator(sc, mat.genDataParams, useIgnite, if (useIgnite) Some(cacheName) else None)
       val rdd = dgen.genData()
       val battery = new CoreBattery(sc, name, dir, rdd)
@@ -78,41 +84,42 @@ object CoreTestMatrix {
 
 class CoreBattery(sc: SparkContext, testName: String, outputDir: String,
   inputRdd: InputRDD) extends TestBattery("CoreBattery", s"$outputDir/$testName") {
-  assert(inputRdd != null,"Hey null RDD's are not cool")
+  assert(inputRdd != null, "Hey null RDD's are not cool")
+
   override def runBattery() = {
     val xformRdds = Seq(
-      (s"$testName/BasicMap", inputRdd.map { case (k,v) =>
+      (s"$testName BasicMap", inputRdd.map { case (k, v) =>
         (k, s"[${k}]:$v")
       }),
-      (s"$testName/Filter", inputRdd.filter { case (k, v) =>
+      (s"$testName Filter", inputRdd.filter { case (k, v) =>
         k % 3 != 0
       }),
-      (s"$testName/MapPartitions", {
+      (s"$testName MapPartitions", {
         val sideData = Range(0, 100000)
         val bcSideData = sc.broadcast(sideData)
         val irdd = inputRdd.mapPartitions { iter =>
-        iter.map { case (k, v) =>
-          val localData = bcSideData.value
-          // println(s"localdata.size=${localData.size}")
-          (k,1000.0 + v)
-        }
-      }; irdd }))
-    val actions = Seq(Collect, CollectByKey)
+          iter.map { case (k, v) =>
+            val localData = bcSideData.value
+            (k, 1000.0 + v)
+          }
+        };
+        irdd
+      }))
+    val actions = Seq(Count, CountByKey)
     val res = for ((name, rdd) <- xformRdds) yield {
       runXformTests(name, rdd, actions)
     }
     val aggRdds = Seq(
-      (s"$testName/GroupByKey", inputRdd.groupByKey)
-      )
-    val aggActions = Seq(Collect, CollectByKey)
+      (s"$testName GroupByKey", inputRdd.groupByKey)
+    )
+    val aggActions = Seq(Count, CountByKey)
     val ares = for ((name, rdd) <- aggRdds) yield {
       runAggTests(name, rdd, aggActions)
     }
     val countRdds = Seq(
-//      (s"$testName-countByKey", inputRdd.countByKey)
-      (s"$testName/AggregateByKey", inputRdd.aggregateByKey(0L)((k,v) => k*v.length, (k,v) => k+v))
-      )
-    val countActions = Seq(Collect, CollectByKey)
+      (s"$testName AggregateByKey", inputRdd.aggregateByKey(0L)((k, v) => k * v.length, (k, v) => k + v))
+    )
+    val countActions = Seq(Count, CountByKey)
     val cres = for ((name, rdd) <- countRdds) yield {
       runCountTests(name, rdd, countActions)
     }
@@ -121,56 +128,76 @@ class CoreBattery(sc: SparkContext, testName: String, outputDir: String,
   }
 
   def getSize(x: Any) = {
+    import collection.mutable
     x match {
-        case arr: Array[_]  => arr.length
-        case m: mutable.Map[_,_]  => m.size
-        case _ => throw new IllegalArgumentException(s"What is our type?? ${x.getClass.getName}")
-      }
+      case x: Number => x.intValue
+      case arr: Array[_] => arr.length
+      case m: mutable.Map[_, _] => m.size
+      case m: Map[_, _] => m.size
+      case _ => throw new IllegalArgumentException(s"What is our type?? ${x.getClass.getName}")
+    }
   }
+
   def runXformTests(name: String, rdd: InputRDD, actions: Seq[Action]): Seq[TestResult] = {
     val results = for (action <- actions) yield {
-      val tname = s"$name/$action"
-      trace(tname, s"Starting xform test $tname")
-      val result = action match {
-        case Collect => rdd.collect
-        case CollectByKey => rdd.collectAsMap
-        case _ => throw new IllegalArgumentException(s"Unrecognized action $action")
+      val tname = s"$name $action"
+//      trace(tname, s"Starting xform test $tname")
+      var tres: TestResult = null
+      TimerArray(tname) {
+        val result = action match {
+          case Collect => rdd.collect
+          case Count => rdd.count
+          case CollectByKey => rdd.collectAsMap
+          case CountByKey => rdd.countByKey
+          case _ => throw new IllegalArgumentException(s"Unrecognized action $action")
+        }
+        val tres = TestResult(tname, tname, Some(getSize(result)))
+//        trace(tname, s"Completed xform test $tname with result=$tres")
       }
-      val tres = TestResult(tname, tname, Some(getSize(result)))
-      trace(tname, s"Completed xform test $tname with result=$tres")
       tres
     }
     results
   }
+
   def runAggTests(name: String, rdd: AggRDD, actions: Seq[Action]): Seq[TestResult] = {
     val results = for (action <- actions) yield {
       val tname = s"$name/$action"
-      trace(tname, s"Starting xform test $tname")
-      val result = action match {
-        case Collect => rdd.collect
-        case CollectByKey => rdd.collectAsMap
-        case _ => throw new IllegalArgumentException(s"Unrecognized action $action")
+//      trace(tname, s"Starting xform test $tname")
+      var tres: TestResult = null
+      TimerArray(tname){
+        val result = action match {
+          case Collect => rdd.collect
+          case Count => rdd.count
+          case CollectByKey => rdd.collectAsMap
+          case CountByKey => rdd.countByKey
+          case _ => throw new IllegalArgumentException(s"Unrecognized action $action")
+        }
+        tres = TestResult(tname, tname, Some(getSize(result)))
+//        trace(tname, s"Completed xform test $tname with result=$tres")
       }
-      val tres = TestResult(tname, tname, Some(getSize(result)))
-      trace(tname, s"Completed xform test $tname with result=$tres")
       tres
     }
     results
   }
+
   def runCountTests(name: String, rdd: CountRDD, actions: Seq[Action]): Seq[TestResult] = {
     val results = for (action <- actions) yield {
       val tname = s"$name/$action"
-      trace(tname, s"Starting xform test $tname")
-      val result = action match {
-        case Collect => rdd.collect
-        case CollectByKey => rdd.collectAsMap
-        case _ => throw new IllegalArgumentException(s"Unrecognized action $action")
+//      trace(tname, s"Starting xform test $tname")
+      var tres: TestResult = null
+      TimerArray(tname) {
+        val result = action match {
+          case Collect => rdd.collect
+          case Count => rdd.count
+          case CollectByKey => rdd.collectAsMap
+          case CountByKey => rdd.countByKey
+          case _ => throw new IllegalArgumentException(s"Unrecognized action $action")
+        }
+        val tres = TestResult(tname, tname, Some(getSize(result)))
+//        trace(tname, s"Completed xform test $tname with result=$tres")
       }
-      val tres = TestResult(tname, tname, Some(getSize(result)))
-      trace(tname, s"Completed xform test $tname with result=$tres")
       tres
     }
     results
   }
 }
-

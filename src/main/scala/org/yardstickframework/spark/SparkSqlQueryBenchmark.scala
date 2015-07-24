@@ -44,7 +44,7 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark(SQL_CACHE_NAME) {
     val df = LoadFunctions.loadDataCSVFile(sqlContext, csvFile, "\t")
     df.registerTempTable("Twitter")
     df.persist(StorageLevel.MEMORY_ONLY)
-    timer = new TimerArray(cfg)
+    timer = new TimerArray()
   }
 
   @throws(classOf[java.lang.Exception])

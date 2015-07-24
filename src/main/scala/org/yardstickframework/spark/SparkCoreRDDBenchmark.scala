@@ -20,12 +20,29 @@ import org.apache.ignite.configuration.IgniteConfiguration
 import org.apache.ignite.spark.{IgniteContext, IgniteRDD}
 import org.yardstickframework._
 import org.yardstickframework.spark.YsSparkTypes.{RddKey, RddVal}
-import org.yardstickframework.spark.util.TimerArray
 
 import SparkCoreRDDBenchmark._
-class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey,RddVal](CORE_CACHE_NAME) {
 
-  val timer = new TimerArray(cfg)
+/**
+ * How to run this in Intellij :
+ *
+ *  You need 8GB of free memory to run the 100M test.  Comment that test out in CoreBattery if you do not
+ *  have sufficient memory
+ *
+ *  1. Create a new run configuration for this class - pointing to the main() method
+ *
+ *  2. Set JVM Options to
+ *       -DIGNITE_QUIET=false  -Xloggc:./gc.log  -XX:+PrintGCDetails  -verbose:gc  -XX:+UseParNewGC
+ *          -XX:+UseConcMarkSweepGC  -XX:+UseTLAB  -XX:NewSize=128m  -XX:MaxNewSize=128m
+ *          -Xms1024m  -Xmx8192m  -XX:MaxPermSize=512m  -XX:MaxTenuringThreshold=0
+ *          -XX:SurvivorRatio=1024  -XX:+UseCMSInitiatingOccupancyOnly
+ *          -XX:CMSInitiatingOccupancyFraction=60
+ *  3. Set Program Arguments to
+ *      -cfg /mnt/thirdeye/yardstick-spark/config/ignite-localhost-config.xml -nn 1 -v -b 1 -w 60 -d 10
+ *          -t 1  -sm PRIMARY_SYNC -dn SparkCoreRDDBenchmark -cn tx -sn SparkNode
+ *
+ */
+class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey,RddVal](CORE_CACHE_NAME) {
 
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration): Unit = {
@@ -42,7 +59,6 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey,RddVal](CORE_C
   def icTest() = {
     type TestKey = String
     type TestVal = Entity
-//    val sc = new SparkContext("local[*]", "test")
     val ic = new IgniteContext[TestKey,TestVal](sc,
       () ⇒ new IgniteConfiguration())
 
@@ -85,7 +101,7 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey,RddVal](CORE_C
 
   @throws(classOf[java.lang.Exception])
   override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
-    icTest()
+//    icTest()
     depthTests()
   }
 }

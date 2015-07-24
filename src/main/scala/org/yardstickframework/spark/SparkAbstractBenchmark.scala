@@ -47,6 +47,8 @@ abstract class SparkAbstractBenchmark[RddK,RddV](val cacheName: String)
   override def setUp(cfg: BenchmarkConfiguration) {
     super.setUp(cfg)
     sc = new SparkContext("local[2]","itest")
+    sc.setLocalProperty("spark.akka.askTimeout","180")
+    sc.setLocalProperty("spark.driver.maxResultSize","2GB")
     sqlContext = new HiveContext(sc)
   }
 
@@ -58,7 +60,7 @@ abstract class SparkAbstractBenchmark[RddK,RddV](val cacheName: String)
 
 object SparkAbstractBenchmark {
   val IP_FINDER = new TcpDiscoveryVmIpFinder(true)
-  def configuration[RddK,RddV](gridName: String, client: Boolean = true)
+  def igniteConfiguration[RddK,RddV](gridName: String, client: Boolean = true)
     (implicit rddK : TypeTag[RddK], rddV: TypeTag[RddV]): IgniteConfiguration = {
     val cfg = new IgniteConfiguration
     val discoSpi = new TcpDiscoverySpi

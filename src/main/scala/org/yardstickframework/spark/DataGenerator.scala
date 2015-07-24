@@ -18,6 +18,7 @@ package org.yardstickframework.spark
 
 import java.io.Serializable
 
+import org.apache.ignite.configuration.IgniteConfiguration
 import org.apache.ignite.spark.{IgniteContext, IgniteRDD}
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
@@ -42,6 +43,10 @@ object YsSparkTypes {
   sealed abstract class Action(name: String)
 
   case object Collect extends Action("collect")
+
+  case object Count extends Action("count")
+
+  case object CountByKey extends Action("countByKey")
 
   case object CollectByKey extends Action("collectByKey")
 
@@ -109,12 +114,12 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
       type RddV = RddVal
       val cacheName = optCacheName.get
       val ic = new IgniteContext[RddK, RddV](sc,
-        () ⇒ SparkAbstractBenchmark.configuration[TypeTag[RddKey], TypeTag[RddVal]](cacheName))
+//        () ⇒ SparkAbstractBenchmark.igniteConfiguration[TypeTag[RddKey], TypeTag[RddVal]](cacheName))
+          () ⇒ new IgniteConfiguration())
+
       import ic.sqlContext.implicits._
       val cache: IgniteRDD[Long, String] = ic.
         fromCache(new TestCacheConfiguration[Long, String]().cacheConfiguration(cacheName))
-
-      cache.savePairs(sc.parallelize(Seq(0 until 10000).flatten.map { x => (x.toLong, s"Hello: $x") }, 10))
 
       val localData = sc.parallelize({
         val dataStruct = dataToBc // bcData.value
@@ -142,10 +147,7 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
         }
         out
       }, dataToBc.nPartitions).persist()
-      //      val localData2 = sc.parallelize(Seq(0 until 10000).flatten.map{ x => (""+x,Entity(x,s"Hello: $x",x*1000)) },10)
-      val localData2 = sc.parallelize(Seq(0 until 10000).flatten.map { x => (x.toLong, s"Hello: $x") }, 10)
-      //      optIcInfo.get.icCache.savePairs(localData2)
-      cache.savePairs(sc.parallelize(Seq(0 until 10000).flatten.map { x => (x.toLong, s"Hello: $x") }, 10))
+      cache.savePairs(sc.parallelize(Seq(0 until 10000).flatten.map { x => (x.toLong, s"Hello: $x") }, dataToBc.nPartitions))
       cache
     } else {
       val rddSeq = sc.parallelize((0 until dataParams.nPartitions).toSeq, dataParams.nPartitions)

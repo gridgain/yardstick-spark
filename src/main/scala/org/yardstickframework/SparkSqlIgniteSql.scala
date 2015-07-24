@@ -12,7 +12,7 @@ class SparkSqlIgniteSql extends SparkIgniteAbstractBenchmark {
 
   var sqlConfig: YamlConfiguration = _
   var cache: IgniteRDD[String, Twitter] = _
-  val timer = new TimerArray(cfg)
+  val timer = new TimerArray()
   var dF: DataFrame = _
 
 

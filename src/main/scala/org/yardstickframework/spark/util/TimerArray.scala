@@ -16,15 +16,10 @@
  */
 package org.yardstickframework.spark.util
 
-import java.io.{FileWriter, PrintWriter}
-import java.text.SimpleDateFormat
-import java.util.Date
-
 import org.slf4j.LoggerFactory
-import org.yardstickframework.BenchmarkConfiguration
 import org.yardstickframework.spark.util.YardstickLogger._
 
-class TimerArray(cfg: BenchmarkConfiguration) extends java.io.Serializable {
+class TimerArray extends java.io.Serializable {
   val logger = LoggerFactory.getLogger(getClass)
   var timersMap: Map[String, TimerEntry] = Map()
 
@@ -35,18 +30,18 @@ class TimerArray(cfg: BenchmarkConfiguration) extends java.io.Serializable {
   val formatter = java.text.NumberFormat.getIntegerInstance
 
 
-  def apply[R](name: String)(block: => R): R = {
-    trace(name, s"Starting Timed Block $name ")
+  import reflect.runtime.universe._
+  def apply[R: TypeTag](name: String)(block: => R): R = {
+    trace(name, s"Starting $name ")
     start(name)
     val result = block
     end(name)
-    trace(name, s"Completed Timed Block $name - duration=${formatTime(timersMap(name).elapsed) /* (1000*1000) */} millis")
+    val millis = (timersMap(name).elapsed.toDouble/(1000*1000)).toInt
+    trace(name, s"Completed $name - duration=$millis millis")
     result
   }
 
   private def timeInSec(timeInNano: Long) = timeInNano / 1000000
-
-  private def formatTime(timeInNano: Long) = formatter.format(timeInNano)
 
   def getTimer(name: String): Option[TimerEntry] = timersMap.get(name)
 
@@ -61,12 +56,13 @@ class TimerArray(cfg: BenchmarkConfiguration) extends java.io.Serializable {
     timersMap.map(entry => entry._1 -> entry._2.elapsed.toString).toString
   }
 
-  def toFormattedString = {
-    timersMap.map(timer => timer._1 -> formatTime(timer._2.elapsed)).toString
-  }
-
   def toString(msg: String): String = {
     msg + toString()
   }
 
+}
+
+object TimerArray {
+  import reflect.runtime.universe._
+  def apply[R: TypeTag](name: String)(block: => R): R = new TimerArray()[R](name){block}
 }
