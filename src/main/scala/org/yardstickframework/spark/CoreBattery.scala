@@ -63,7 +63,7 @@ object CoreTestMatrix {
     for (nRecs <- testDims.nRecords;
          nPartitions <- testDims.nPartitions;
          skew <- testDims.firstPartitionSkew;
-         useIgnite <- A(false, true)) {
+         useIgnite <- A(true, false)) {
 
       val rawname = "CoreSmoke"
       val tname = s"$dtf/$rawname"

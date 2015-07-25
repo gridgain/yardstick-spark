@@ -68,6 +68,11 @@
             <systemPath>${basedir}/repo/ignite-yardstick-0.1.0.jar</systemPath>
             <version>0.1.0</version>
        </dependency>
+      <dependency>
+        <groupId>org.apache.ignite</groupId>
+        <artifactId>ignite-aws</artifactId>
+        <version>1.2.0-incubating</version>
+      </dependency>
        <dependency>
             <groupId>com.databricks</groupId>
             <artifactId>spark-csv_${scala.version}</artifactId>
