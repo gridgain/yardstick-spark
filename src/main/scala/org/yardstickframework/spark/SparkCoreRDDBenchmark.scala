@@ -22,27 +22,28 @@ import org.yardstickframework._
 import org.yardstickframework.spark.YsSparkTypes.{RddKey, RddVal}
 
 import SparkCoreRDDBenchmark._
+import org.yardstickframework.spark.util.YamlConfiguration
 
 /**
  * How to run this in Intellij :
  *
- *  You need 8GB of free memory to run the 100M test.  Comment that test out in CoreBattery if you do not
- *  have sufficient memory
+ * You need 8GB of free memory to run the 100M test.  Comment that test out in CoreBattery if you do not
+ * have sufficient memory
  *
- *  1. Create a new run configuration for this class - pointing to the main() method
+ * 1. Create a new run configuration for this class - pointing to the main() method
  *
- *  2. Set JVM Options to
- *       -DIGNITE_QUIET=false  -Xloggc:./gc.log  -XX:+PrintGCDetails  -verbose:gc  -XX:+UseParNewGC
- *          -XX:+UseConcMarkSweepGC  -XX:+UseTLAB  -XX:NewSize=128m  -XX:MaxNewSize=128m
- *          -Xms1024m  -Xmx8192m  -XX:MaxPermSize=512m  -XX:MaxTenuringThreshold=0
- *          -XX:SurvivorRatio=1024  -XX:+UseCMSInitiatingOccupancyOnly
- *          -XX:CMSInitiatingOccupancyFraction=60
- *  3. Set Program Arguments to
- *      -cfg /mnt/thirdeye/yardstick-spark/config/ignite-localhost-config.xml -nn 1 -v -b 1 -w 60 -d 10
- *          -t 1  -sm PRIMARY_SYNC -dn SparkCoreRDDBenchmark -cn tx -sn SparkNode
+ * 2. Set JVM Options to
+ * -DIGNITE_QUIET=false  -Xloggc:./gc.log  -XX:+PrintGCDetails  -verbose:gc  -XX:+UseParNewGC
+ * -XX:+UseConcMarkSweepGC  -XX:+UseTLAB  -XX:NewSize=128m  -XX:MaxNewSize=128m
+ * -Xms1024m  -Xmx8192m  -XX:MaxPermSize=512m  -XX:MaxTenuringThreshold=0
+ * -XX:SurvivorRatio=1024  -XX:+UseCMSInitiatingOccupancyOnly
+ * -XX:CMSInitiatingOccupancyFraction=60
+ * 3. Set Program Arguments to
+ * -cfg /mnt/thirdeye/yardstick-spark/config/ignite-localhost-config.xml -nn 1 -v -b 1 -w 60 -d 10
+ * -t 1  -sm PRIMARY_SYNC -dn SparkCoreRDDBenchmark -cn tx -sn SparkNode
  *
  */
-class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey,RddVal](CORE_CACHE_NAME) {
+class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey, RddVal](CORE_CACHE_NAME) {
 
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration): Unit = {
@@ -50,8 +51,49 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey,RddVal](CORE_C
     super.setUp(cfg)
   }
 
+  val CoreTestsFile = "config/coreTests.yml"
+
+  def readTestConfig(ymlFile: String) = {
+    val yml = new YamlConfiguration(ymlFile)
+
+    def toIntList(cval: Option[_], default: Seq[Int]) : Seq[Int] = {
+      import collection.JavaConverters._
+      if (cval.isEmpty) {
+        default
+      } else cval.get match {
+
+        case ints: java.util.ArrayList[_] => ints.asScala.toSeq.asInstanceOf[Seq[Int]]
+        case _ => throw new IllegalArgumentException(s"Unexpected type in toIntList ${cval.get.getClass.getName}")
+      }
+    }
+    def toBoolList(cval: Option[_], default: Seq[Boolean]) : Seq[Boolean] = {
+      import collection.JavaConverters._
+      if (cval.isEmpty) {
+        default
+      } else cval.get match {
+
+        case bools: java.util.ArrayList[_] => bools.asScala.toSeq.asInstanceOf[Seq[Boolean]]
+        case _ => throw new IllegalArgumentException(s"Unexpected type in toIntList ${cval.get.getClass.getName}")
+      }
+    }
+    def toLong(cval: Option[Long], default: Long) = cval.getOrElse(default)
+
+    val A = Array
+    val conf = CoreTestConfig(
+      toIntList(yml("core.nRecords.thousands"),Seq(1000)).map(_ * 1000),
+      toIntList(yml("core.nPartitions"),Seq(20)),
+      toIntList(yml("core.skewFactors"), Seq(1)),
+      yml("core.minVal").getOrElse(0).asInstanceOf[Int].toLong,
+      yml("core.maxVal").getOrElse(20000).asInstanceOf[Int].toLong,
+      toBoolList(yml("core.useIgnite"), Seq(true,false))
+    )
+    println(s"CoreTest config is ${conf.toString}")
+    conf
+  }
+
   def depthTests(): Boolean = {
-    val (pass, tresults) = CoreTestMatrix.runMatrix(sc, cacheName)
+    val testConfig = readTestConfig(CoreTestsFile)
+    val (pass, tresults) = CoreTestMatrix.runMatrix(sc, testConfig, cacheName)
     pass
   }
 
@@ -59,12 +101,12 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey,RddVal](CORE_C
   def icTest() = {
     type TestKey = String
     type TestVal = Entity
-    val ic = new IgniteContext[TestKey,TestVal](sc,
+    val ic = new IgniteContext[TestKey, TestVal](sc,
       () ⇒ new IgniteConfiguration())
 
     try {
-      val cache: IgniteRDD[TestKey,TestVal] = ic.
-        fromCache(new TestCacheConfiguration[String,Entity]().cacheConfiguration(cacheName))
+      val cache: IgniteRDD[TestKey, TestVal] = ic.
+        fromCache(new TestCacheConfiguration[String, Entity]().cacheConfiguration(cacheName))
 
       import ic.sqlContext.implicits._
 
@@ -101,13 +143,14 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey,RddVal](CORE_C
 
   @throws(classOf[java.lang.Exception])
   override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
-//    icTest()
+    //    icTest()
     depthTests()
   }
 }
 
 object SparkCoreRDDBenchmark {
   val CORE_CACHE_NAME = "core"
+
   def main(args: Array[String]) {
     val b = new SparkCoreRDDBenchmark
     val cfg = new BenchmarkConfiguration()

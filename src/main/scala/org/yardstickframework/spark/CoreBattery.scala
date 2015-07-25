@@ -38,39 +38,42 @@ abstract class TestBattery(name: String, outdir: String) {
   def tearDown(): Unit = {}
 }
 
-case class TestParams(name: String, dataParams: GenDataParams)
+case class CoreTestConfig(nRecords: Seq[Int], nPartitions: Seq[Int], firstPartitionSkew: Seq[Int],
+  minVal: Long, maxVal: Long, useIgnite: Seq[Boolean])
 
 case class TestMatrixSpec(name: String, version: String, genDataParams: GenDataParams)
 
 object CoreTestMatrix {
   val A = Array
 
-  def runMatrix(sc: SparkContext, cacheName: String) = {
-    val testDims = new {
+  val defaultTestConfig = new CoreTestConfig(
 //      var nRecords = (1 to 5).toList.map{ x => (1000 *  math.pow(10,x)).toInt }
-      var nRecords = A(/*10*1000, 100*1000, 1000*1000, 10*1000*1000, */ 100*1000*1000)
-      //      var nRecords = A(100000 , 1000000 /*, 10000000 */)
-      var nPartitions = A(20)
+      A(/*10*1000, 100*1000, 1000*1000, 10*1000*1000, */ 1*1000*1000),
+      //      var nRecords = A(100000 , 1000000 /*, 10000000 */),
+      A(20) ,
       // A(10, 100)
-      var firstPartitionSkew = A(1)
+      A(1),
       //  A(/*1, 10, 100)
-      val min = 0L
-      val max = 10000L
-    }
+      0L,
+      10000L,
+      A(true, false)
+  )
+  def runMatrix(sc: SparkContext, testDims: CoreTestConfig, cacheName: String) = {
     val passArr = mutable.ArrayBuffer[Boolean]()
     val resArr = mutable.ArrayBuffer[TestResult]()
     val dtf = new SimpleDateFormat("MMdd-hhmmss").format(new Date)
     for (nRecs <- testDims.nRecords;
          nPartitions <- testDims.nPartitions;
          skew <- testDims.firstPartitionSkew;
-         useIgnite <- A(true, false)) {
+         useIgnite <- testDims.useIgnite) {
 
       val rawname = "CoreSmoke"
       val tname = s"$dtf/$rawname"
       val igniteOrNative = if (useIgnite) "ignite" else "native"
       val name = s"$tname ${nRecs}recs ${nPartitions}parts ${skew}skew ${igniteOrNative}"
       val dir = name.replace(" ", "/")
-      val mat = TestMatrixSpec("core-smoke", "0.1", GenDataParams(nRecs, nPartitions, Some(testDims.min), Some(testDims.max), Some(skew)))
+      val mat = TestMatrixSpec("core-smoke", "1.0", GenDataParams(nRecs, nPartitions, Some(testDims.minVal),
+        Some(testDims.maxVal), Some(skew)))
       val dgen = new SingleSkewDataGenerator(sc, mat.genDataParams, useIgnite, if (useIgnite) Some(cacheName) else None)
       val rdd = dgen.genData()
       val battery = new CoreBattery(sc, name, dir, rdd)

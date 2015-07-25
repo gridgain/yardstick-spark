@@ -60,6 +60,7 @@ case class YamlConfiguration(ymlFile: String) {
   def apply(key: String) = {
     yamlConf.get(key)
   }
+
   def apply(key: String, default: String) = {
     yamlConf.getOrElse(key, default)
   }

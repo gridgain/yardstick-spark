@@ -27,12 +27,16 @@
     <import resource="ignite-base-config.xml"/>
 
     <bean id="grid.cfg" class="org.apache.ignite.configuration.IgniteConfiguration" parent="base-ignite.cfg">
-        <property name="localHost" value="127.0.0.1"/>
+        <!-- <property name="localHost" value="10.0.0.3"/> -->
 
         <property name="discoverySpi">
             <bean class="org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi">
                 <property name="ipFinder">
-                    <bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder">
+                    <bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.s3.TcpDiscoveryS3IpFinder">
+                              <property name="awsCredentials" ref="aws.creds"/>
+                                        <property name="bucketName" value="yardstickspark"/>
+                  </bean>
+<!--                    <bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder">
                         <property name="addresses">
                             <list>
                                 <value>127.0.0.1:47500</value>
@@ -47,9 +51,14 @@
                                 <value>127.0.0.1:47509</value>
                             </list>
                         </property>
-                    </bean>
+                    </bean>  -->
                 </property>
             </bean>
         </property>
+    </bean>
+    <!-- AWS credentials. Provide your access key ID and secret access key. -->
+    <bean id="aws.creds" class="com.amazonaws.auth.BasicAWSCredentials">
+      <constructor-arg value="97gVakpBHl2ZIy/rRFNf7Kf5CQo8/OLY6AfVYvMfy" />
+      <constructor-arg value="BAKIAJ5IBUWBAX6DR4IFA" />
     </bean>
 </beans>
