@@ -21,14 +21,19 @@ import java.util.Date
 
 import org.apache.spark.SparkContext
 import org.yardstickframework.spark.YsSparkTypes._
-import org.yardstickframework.spark.util.TimerArray
-import org.yardstickframework.spark.util.YardstickLogger._
+import org.yardstickframework.spark.util.{YardstickLogger, TimedResult}
 
 import scala.collection.mutable
 
+import YardstickLogger._
+
 case class TestResult(testName: String, resultName: String,
   optCount: Option[Int] = None, optResult: Option[Any] = None, stdOut: Option[String] = None,
-  stdErr: Option[String] = None)
+  stdErr: Option[String] = None) {
+  override def toString() = {
+    s"$resultName: count=${optCount.getOrElse("Zero")}"
+  }
+}
 
 abstract class TestBattery(name: String, outdir: String) {
   def setUp(): Unit = {}
@@ -62,13 +67,14 @@ object CoreTestMatrix {
     val passArr = mutable.ArrayBuffer[Boolean]()
     val resArr = mutable.ArrayBuffer[TestResult]()
     val dtf = new SimpleDateFormat("MMdd-hhmmss").format(new Date)
-    for (nRecs <- testDims.nRecords;
+    for (useIgnite <- testDims.useIgnite;
+         nRecs <- testDims.nRecords;
          nPartitions <- testDims.nPartitions;
-         skew <- testDims.firstPartitionSkew;
-         useIgnite <- testDims.useIgnite) {
+         skew <- testDims.firstPartitionSkew
+         ) {
 
-      val rawname = "CoreSmoke"
-      val tname = s"$dtf/$rawname"
+      val rawName = "CoreSmoke"
+      val tname = s"$dtf/$rawName"
       val igniteOrNative = if (useIgnite) "ignite" else "native"
       val name = s"$tname ${nRecs}recs ${nPartitions}parts ${skew}skew ${igniteOrNative}"
       val dir = name.replace(" ", "/")
@@ -78,6 +84,8 @@ object CoreTestMatrix {
       val rdd = dgen.genData()
       val battery = new CoreBattery(sc, name, dir, rdd)
       val (pass, tresults) = battery.runBattery()
+      val counts = tresults.map{t => t.optCount.getOrElse(-1)}
+      trace(rawName,s"Finished test $name with resultCounts=${counts.mkString(",")}")
       passArr += pass
       resArr ++= tresults
     }
@@ -146,7 +154,7 @@ class CoreBattery(sc: SparkContext, testName: String, outputDir: String,
       val tname = s"$name $action"
 //      trace(tname, s"Starting xform test $tname")
       var tres: TestResult = null
-      TimerArray(tname) {
+      TimedResult(tname) {
         val result = action match {
           case Collect => rdd.collect
           case Count => rdd.count
@@ -154,10 +162,8 @@ class CoreBattery(sc: SparkContext, testName: String, outputDir: String,
           case CountByKey => rdd.countByKey
           case _ => throw new IllegalArgumentException(s"Unrecognized action $action")
         }
-        val tres = TestResult(tname, tname, Some(getSize(result)))
-//        trace(tname, s"Completed xform test $tname with result=$tres")
+        TestResult(tname, tname, Some(getSize(result)))
       }
-      tres
     }
     results
   }
@@ -167,7 +173,7 @@ class CoreBattery(sc: SparkContext, testName: String, outputDir: String,
       val tname = s"$name/$action"
 //      trace(tname, s"Starting xform test $tname")
       var tres: TestResult = null
-      TimerArray(tname){
+      TimedResult(tname){
         val result = action match {
           case Collect => rdd.collect
           case Count => rdd.count
@@ -175,10 +181,9 @@ class CoreBattery(sc: SparkContext, testName: String, outputDir: String,
           case CountByKey => rdd.countByKey
           case _ => throw new IllegalArgumentException(s"Unrecognized action $action")
         }
-        tres = TestResult(tname, tname, Some(getSize(result)))
-//        trace(tname, s"Completed xform test $tname with result=$tres")
+        val size = Some(getSize(result))
+        TestResult(tname, tname, size)
       }
-      tres
     }
     results
   }
@@ -188,7 +193,7 @@ class CoreBattery(sc: SparkContext, testName: String, outputDir: String,
       val tname = s"$name/$action"
 //      trace(tname, s"Starting xform test $tname")
       var tres: TestResult = null
-      TimerArray(tname) {
+      TimedResult(tname) {
         val result = action match {
           case Collect => rdd.collect
           case Count => rdd.count
@@ -196,10 +201,8 @@ class CoreBattery(sc: SparkContext, testName: String, outputDir: String,
           case CountByKey => rdd.countByKey
           case _ => throw new IllegalArgumentException(s"Unrecognized action $action")
         }
-        val tres = TestResult(tname, tname, Some(getSize(result)))
-//        trace(tname, s"Completed xform test $tname with result=$tres")
+        TestResult(tname, tname, Some(getSize(result)))
       }
-      tres
     }
     results
   }

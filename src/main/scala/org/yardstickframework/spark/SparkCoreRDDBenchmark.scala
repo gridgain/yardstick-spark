@@ -88,7 +88,7 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey, RddVal](CORE_
       toIntList(yml("core.nPartitions"),Seq(20)),
       toIntList(yml("core.skewFactors"), Seq(1)),
       yml("core.minVal").getOrElse(0).asInstanceOf[Int].toLong,
-      yml("core.maxVal").getOrElse(20000).asInstanceOf[Int].toLong,
+      yml("core.maxVal").getOrElse(100000).asInstanceOf[Int].toLong,
       toBoolList(yml("core.useIgnite"), Seq(true,false))
     )
     println(s"CoreTest config is ${conf.toString}")

@@ -16,32 +16,20 @@
  */
 package org.yardstickframework.ignite
 
-import org.apache.ignite.cache.CacheMode
-import org.apache.ignite.cache.query.{QueryCursor, SqlFieldsQuery, SqlQuery}
-import org.apache.ignite.spark.{IgniteRDD, IgniteContext}
+import org.apache.ignite.spark.IgniteRDD
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.hive.HiveContext
 import org.yardstickframework._
 import org.yardstickframework.ignite.util._
-import org.apache.ignite.configuration._
-import org.yardstickframework.spark.{SparkIgniteAbstractBenchmark, SqlBatteryConfigs, SqlTestMatrix, SqlBattery}
-import org.yardstickframework.spark.util.YamlConfiguration
-import org.yardstickframework.spark.util.{TimerArray, StorageFunctions}
+import org.yardstickframework.spark.util.{TimedResult, YamlConfiguration}
+import org.yardstickframework.spark.{SparkIgniteAbstractBenchmark, SqlBatteryConfigs, SqlTestMatrix}
 
-import scala.util.Random
-
-import org.apache.ignite.scalar.scalar._
-
-import org.apache.ignite.configuration.CacheConfiguration
-import org.apache.ignite.{Ignite, IgniteCache}
-
-import collection.JavaConverters._
+import scala.collection.JavaConverters._
 
 class SparkIgniteSqlBenchmark extends SparkIgniteAbstractBenchmark {
 
   var sqlConfig: YamlConfiguration = _
   var cache: IgniteRDD[String, Twitter] = _
-  val timer = new TimerArray()
+  val timer = new TimedResult()
   var dF: DataFrame = _
 
 

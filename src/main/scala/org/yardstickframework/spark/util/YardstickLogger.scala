@@ -30,7 +30,6 @@ import org.yardstickframework.BenchmarkConfiguration
 object YardstickLogger  {
 
   import collection.mutable
-//  var optCfg : Option[BenchmarkConfiguration] = _
   val DATE_FMT = new SimpleDateFormat("<HH:mm:ss>")
   var LogsDir = "/tmp/yslogs"
   val lfile= new java.io.File(LogsDir)
@@ -38,7 +37,7 @@ object YardstickLogger  {
     lfile.mkdirs
   }
   private val logsMap = new mutable.HashMap[String,PrintWriter]()
-  def trace(name: String, msg: String) = {
+  def trace(name: String, msg: String, stdout: Boolean = false) = {
     val path = s"$LogsDir/${name.replace(" ","/")}.log"
     val dir = path.substring(0,path.lastIndexOf("/"))
     val f = new java.io.File(dir)
@@ -47,8 +46,10 @@ object YardstickLogger  {
     }
     val log = logsMap.getOrElseUpdate(path, new PrintWriter(new FileWriter(path)))
     log.println(DATE_FMT.format(new Date) + "<yardstick> " + msg)
-    log.flush
-    //    org.yardstickframework.BenchmarkUtils.println(optCfg.get,msg)
+    log.flush()
+    if (stdout) {
+      println(DATE_FMT.format(new Date) + " " + msg)
+    }
   }
 
 }

@@ -1,18 +1,20 @@
 package org.yardstickframework
 
-import org.apache.ignite.spark.{IgniteRDD}
+import org.apache.ignite.spark.IgniteRDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.storage.StorageLevel
 import org.yardstickframework.ignite.util._
+import org.yardstickframework.spark.util.{LoadFunctions, TimedResult, YamlConfiguration}
 import org.yardstickframework.spark.{SparkIgniteAbstractBenchmark, SqlBatteryConfigs, SqlTestMatrix}
-import org.yardstickframework.spark.util.{LoadFunctions, YamlConfiguration, TimerArray}
-import collection.JavaConverters._
+
+import scala.collection.JavaConverters._
+
 
 class SparkSqlIgniteSql extends SparkIgniteAbstractBenchmark {
 
   var sqlConfig: YamlConfiguration = _
   var cache: IgniteRDD[String, Twitter] = _
-  val timer = new TimerArray()
+  val timer = new TimedResult()
   var dF: DataFrame = _
 
 

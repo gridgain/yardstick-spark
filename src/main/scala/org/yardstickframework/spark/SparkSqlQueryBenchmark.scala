@@ -15,19 +15,20 @@
 package org.yardstickframework.spark
 
 
-import org.apache.ignite.spark.{IgniteRDD, IgniteContext}
+import org.apache.ignite.spark.IgniteRDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.storage.StorageLevel
 import org.yardstickframework._
 import org.yardstickframework.ignite.util._
 import org.yardstickframework.impl.BenchmarkLoader
-import org.yardstickframework.spark.util.{LoadFunctions, YamlConfiguration, TimerArray}
-import collection.JavaConverters._
-import SparkSqlQueryBenchmark._
+import org.yardstickframework.spark.SparkSqlQueryBenchmark._
+import org.yardstickframework.spark.util.{LoadFunctions, TimedResult, YamlConfiguration}
+
+import scala.collection.JavaConverters._
 
 class SparkSqlQueryBenchmark extends SparkAbstractBenchmark(SQL_CACHE_NAME) {
 
-  var timer: TimerArray = _
+  var timer: TimedResult = _
   var sqlConfig: YamlConfiguration = _
   var dF: DataFrame = _
   var cache: IgniteRDD[String, Twitter] = _
@@ -44,7 +45,7 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark(SQL_CACHE_NAME) {
     val df = LoadFunctions.loadDataCSVFile(sqlContext, csvFile, "\t")
     df.registerTempTable("Twitter")
     df.persist(StorageLevel.MEMORY_ONLY)
-    timer = new TimerArray()
+    timer = new TimedResult()
   }
 
   @throws(classOf[java.lang.Exception])

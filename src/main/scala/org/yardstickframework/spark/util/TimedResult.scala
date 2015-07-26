@@ -17,9 +17,10 @@
 package org.yardstickframework.spark.util
 
 import org.slf4j.LoggerFactory
+import org.yardstickframework.spark.TestResult
 import org.yardstickframework.spark.util.YardstickLogger._
 
-class TimerArray extends java.io.Serializable {
+class TimedResult extends Serializable {
   val logger = LoggerFactory.getLogger(getClass)
   var timersMap: Map[String, TimerEntry] = Map()
 
@@ -37,7 +38,11 @@ class TimerArray extends java.io.Serializable {
     val result = block
     end(name)
     val millis = (timersMap(name).elapsed.toDouble/(1000*1000)).toInt
-    trace(name, s"Completed $name - duration=$millis millis")
+    val cmsg = result match {
+      case t: TestResult => t.optCount.getOrElse(0)
+      case _ => 0
+    }
+    trace(name, s"Completed $name - duration=$millis millis count=$cmsg", true)
     result
   }
 
@@ -62,7 +67,7 @@ class TimerArray extends java.io.Serializable {
 
 }
 
-object TimerArray {
+object TimedResult {
   import reflect.runtime.universe._
-  def apply[R: TypeTag](name: String)(block: => R): R = new TimerArray()[R](name){block}
+  def apply[R: TypeTag](name: String)(block: => R): R = new TimedResult()[R](name){block}
 }

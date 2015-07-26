@@ -96,12 +96,13 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
       val optMax = optMaxIn
       val params = dataParams
       val nPartitions = dataParams.nPartitions
-      val nrecs = Math.ceil(dataParams.nRecords / (dataParams.nPartitions * 2.0)).toInt
+      val nRecords = dataParams.nRecords
+      val nrecsPerSlice = Math.ceil(dataParams.nRecords / (dataParams.nPartitions * 2.0)).toInt
       val width = (optMax.get - optMin.get) / dataParams.nPartitions
-      val firstNrec = dataParams.nRecords - (dataParams.nPartitions - 1) * nrecs
+      val firstNrec = dataParams.nRecords - (dataParams.nPartitions - 1) * nrecsPerSlice
       val nrecsAndBounds = (0 until nPartitions)
         .foldLeft(new mutable.ArrayBuffer[(Int, (Long, Long))]()) { case (m, rx) =>
-        m += Tuple2(if (rx == 0) firstNrec else nrecs, (1L * rx * width, (rx + 1L) * width))
+        m += Tuple2(if (rx == 0) firstNrec else nrecsPerSlice, (1L * rx * width, (rx + 1L) * width))
       }
       val words = DataGeneratorUtils.readWords
       println(s"len(words) is ${words.length}")
@@ -140,14 +141,14 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
           }
         }
         val rnd = new java.util.Random
-        var mlongs = longs(dataStruct.nrecs, dataStruct.optMin.get, dataStruct.optMax.get)
-        val out = (0 until dataStruct.nrecs).foldLeft(mutable.ArrayBuffer[RddTuple]()) { case (m, n) =>
+        var mlongs = longs(dataStruct.nrecsPerSlice, dataStruct.optMin.get, dataStruct.optMax.get)
+        val out = (0 until dataStruct.nrecsPerSlice).foldLeft(mutable.ArrayBuffer[RddTuple]()) { case (m, n) =>
           val windex = rnd.nextInt(dataStruct.nWords)
           m += Tuple2(mlongs(n), dataStruct.words(windex))
         }
         out
       }, dataToBc.nPartitions).persist()
-      cache.savePairs(sc.parallelize(Seq(0 until 10000).flatten.map { x => (x.toLong, s"Hello: $x") }, dataToBc.nPartitions))
+      cache.savePairs(sc.parallelize((0 until dataToBc.nRecords).toList.map { x => (x.toLong, s"Hello: $x") }, dataToBc.nPartitions))
       cache
     } else {
       val rddSeq = sc.parallelize((0 until dataParams.nPartitions).toSeq, dataParams.nPartitions)
