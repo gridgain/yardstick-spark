@@ -45,13 +45,17 @@ import org.yardstickframework.spark.util.YamlConfiguration
  */
 class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey, RddVal](CORE_CACHE_NAME) {
 
+  var coreTestsFile : String = "config/coreTests.yml"
+
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration): Unit = {
     println(s"setUp BenchmarkConfiguration=${cfg.toString}")
     super.setUp(cfg)
+    import collection.JavaConverters._
+//    coreTestsFile = cfg.customProperties.asScala
+//        .getOrElse("CORE_CONFIG_FILE", "/root/yardstick-spark/config/coreTests.yml")
   }
 
-  val CoreTestsFile = "config/coreTests.yml"
 
   def readTestConfig(ymlFile: String) = {
     val yml = new YamlConfiguration(ymlFile)
@@ -92,7 +96,7 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey, RddVal](CORE_
   }
 
   def depthTests(): Boolean = {
-    val testConfig = readTestConfig(CoreTestsFile)
+    val testConfig = readTestConfig(coreTestsFile)
     val (pass, tresults) = CoreTestMatrix.runMatrix(sc, testConfig, cacheName)
     pass
   }

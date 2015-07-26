@@ -22,8 +22,9 @@ package org.yardstickframework.spark
  *
  */
 import com.beust.jcommander._
+import org.apache.ignite.yardstick.IgniteBenchmarkArguments
 
-class SparkBenchmarkArguments {
+class SparkBenchmarkArguments extends IgniteBenchmarkArguments {
 
     @Parameter(names = Array("-sparkcfg", "--sparkConfig"), description = "Configuration file")
 //    @Parameter(names = "-sparkcfg", description = "Configuration file")

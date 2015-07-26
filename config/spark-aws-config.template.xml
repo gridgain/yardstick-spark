@@ -33,7 +33,7 @@
                 <property name="ipFinder">
                     <bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.s3.TcpDiscoveryS3IpFinder">
                               <property name="awsCredentials" ref="aws.creds"/>
-                                        <property name="bucketName" value="#{systemEnvironment['yardstick-spark.aws.bucket']}"/>
+                                        <property name="bucketName" value="yardstick_spark_aws_bucket"/>
                   </bean>
                 </property>
             </bean>
@@ -41,7 +41,7 @@
     </bean>
     <!-- AWS credentials. Provide your access key ID and secret access key. -->
     <bean id="aws.creds" class="com.amazonaws.auth.BasicAWSCredentials">
-      <constructor-arg value="#{systemEnvironment['yardstick-spark.aws.key']}" />
-      <constructor-arg value="#{systemEnvironment['yardstick-spark.aws.secret-key']}" />
+      <constructor-arg value="yardstick_spark_aws_key" />
+      <constructor-arg value="yardstick_spark_aws_secret_key" />
     </bean>
 </beans>
