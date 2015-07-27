@@ -50,23 +50,23 @@ class SqlBattery(sqlBatteryConfigs: SqlBatteryConfigs,
 
     val xformRdds = if (sqlBatteryConfigs.useIgnite) {
       Seq(
-     //   (s"$testName/COUNT", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
-    //      """SELECT COUNT(*) from Twitter""".stripMargin)))
-     //   (s"$testName/ORDERBY", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
-     //    """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin)))
-      //  (s"$testName/GROUPBY", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
-      //    """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at  limit 50""".stripMargin)))
+        (s"$testName/COUNT", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
+          """SELECT COUNT(*) from Twitter""".stripMargin))),
+        (s"$testName/ORDERBY", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
+         """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin))),
+        (s"$testName/GROUPBY", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
+          """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at  limit 50""".stripMargin))),
         (s"$testName/JOIN", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.join",
           """SELECT e.username AS userName, m.tweet AS tweetText FROM Twitter e INNER JOIN Twitter m ON e.id = m.id;""".stripMargin)))
       )
     } else {
       Seq(
-       // (s"$testName/COUNT", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
-      //    """SELECT COUNT(*) from Twitter""".stripMargin)))
-      //  (s"$testName/ORDERBY", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
-      //    """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin)))
-    //    (s"$testName/GROUPBY", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
-     //    """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at  limit 50""".stripMargin)))
+        (s"$testName/COUNT", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
+          """SELECT COUNT(*) from Twitter""".stripMargin))),
+        (s"$testName/ORDERBY", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
+          """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin))),
+        (s"$testName/GROUPBY", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
+         """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at  limit 50""".stripMargin))),
         (s"$testName/JOIN", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.join",
           """  SELECT e.username AS userName, m.tweet AS tweetText FROM Twitter e INNER JOIN Twitter m ON e.id = m.id;""".stripMargin)))
      )
