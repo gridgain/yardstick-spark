@@ -46,33 +46,13 @@ abstract class SparkAbstractBenchmark[RddK,RddV](val cacheName: String)
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration) {
     super.setUp(cfg)
-//    var master = System.getenv("MASTER")
-    // Hack to get master
-    // Line is in /root/spark/conf/spark-env.sh:
-    // export SPARK_MASTER_IP=ec2-184-72-155-207.compute-1.amazonaws.com
-    val sfile = "/root/spark/conf/spark-env.sh"
-    val master = if (new java.io.File(sfile).exists) {
-      val ipLine = scala.io.Source.fromFile(sfile).getLines.toList
-        .filter(l => !l.startsWith("#") && l.contains("SPARK_MASTER_IP"))
-      val ip=ipLine.head.substring(ipLine.head.lastIndexOf("=") + 1)
-      val portLine = scala.io.Source.fromFile(sfile).getLines.toList
-        .filter(l => !l.startsWith("#") && l.contains("SPARK_MASTER_PORT"))
-      val port = if (!portLine.isEmpty) {
-        portLine.head.substring(portLine.head.lastIndexOf("=") + 1)
-      } else {
-        "7077"
-      }
-      s"spark://$ip:$port"
-    } else {
-      s"local[${Runtime.getRuntime.availableProcessors}]"
-    }
-    val msg = s"*** MASTER is $master ****"
-    System.err.println(msg)
-    tools.nsc.io.File("/tmp/MASTER.txt").writeAll(msg)
     val testName = "SparkBenchmark"  // TODO: specify Core or SQL
     val sconf = new SparkConf()
         .setAppName(testName)
-        .setMaster(master)
+    val msg = s"*** MASTER is ${sconf.get("spark.master")} ****"
+    System.err.println(msg)
+    tools.nsc.io.File("/tmp/MASTER.txt").writeAll(msg)
+
     sc = new SparkContext(sconf)
     sc.setLocalProperty("spark.akka.askTimeout","180")
     sc.setLocalProperty("spark.driver.maxResultSize","2GB")
