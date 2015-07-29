@@ -114,9 +114,14 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
       type RddK = RddKey
       type RddV = RddVal
       val cacheName = optCacheName.get
+      val iconf = new IgniteConfiguration()
+      if (System.getProperties().contains("IGNITE_HOME")) {
+        iconf.setIgniteHome(System.getProperty("IGNITE_HOME"))
+      }
+
       val ic = new IgniteContext[RddK, RddV](sc,
 //        () ⇒ SparkAbstractBenchmark.igniteConfiguration[TypeTag[RddKey], TypeTag[RddVal]](cacheName))
-          () ⇒ new IgniteConfiguration())
+          () ⇒ iconf)
 
       import ic.sqlContext.implicits._
       val cache: IgniteRDD[Long, String] = ic.

@@ -21,6 +21,7 @@ def grabData(rootdir):
    files = glob2.glob("%s/**/*.log" %rootdir)
    for f in files:
        pr("%s" %f)
+   return files
 
 import os
 #import sys
@@ -52,20 +53,62 @@ from collections import namedtuple
 LLine = namedtuple('LLine', 'tstamp tname nrecs nparts nskew native xform action duration count')
 
 def repch(chars, targ, src):
-    def choosec(c,targ):
-        yield c if c in chars else targ
+  out = ''
+  for c in src:
+    out += c if not c in chars else targ
+  return out
 
-    return str(''.join([choosec(c) for c in src]))
-
+incx = 0
 def parseLine(line):
-    t = repch('/-=',' ', line.substring(line.find('Completed ')+ len('Completed '))).split(' ')
+    pr(line)
+    trunced = line[line.find('Completed ')+ len('Completed '):]
+    pr(trunced)
+    pr('aht?')
+    trunced = 'Data ' + trunced
+    t = repch('/-=\n',' ', trunced).split(' ')
+    # t = filter(None,[el for subl in t for el in subl])
+    t = filter(None,t)
+    pr("%s" %t)
+    # ['Data', '0727', '095121', 'CoreSmoke', '10000000recs', '20parts', '1skew', 'native', 'BasicMap', 'Count', 'duration', '4942', 'millis', 'count', '10000000']
+
+    global incx
+    incx = 0
+    def inc(n = 1):
+      global incx
+      incx += n
+      return incx-1
+
+    def rm(src,pat):
+      return src.replace(pat,'')
+
+    t = [
+        # t[inc()],  # title
+        ''.join([t[inc(2)],t[inc()]]),
+        t[inc()],  # name
+        rm(t[inc()],'recs'),
+        rm(t[inc()],'parts'),
+        rm(t[inc()],'skew'),
+        t[inc()], #native
+        t[inc()],  #basicmap
+        t[inc()], #'count'
+        t[inc(2)], #'duration' duration
+        t[inc(3)] # 'millis' 'count' count
+        ]
+    pr(str(t))
     ll = LLine(*t)
-    ll.nrecs = int(int(ll.nrecs)/1000)
-    ll.duration = int(int(ll.nrecs)/100)
-    ll.count = int(int(ll.count)/1000)
+    # ll.nrecs = int(int(ll.nrecs)/1000)
+    # ll.duration = int(int(ll.nrecs)/100)
+    # ll.count = int(int(ll.count)/1000)
     return ll
 
-llines = [parseLine(ll) for ll in [open(f) for f in files]]
+#llines = [parseLine(ll) for ll in [open(f) for f in files]]
+llines = []
+for f in files:
+  for ll in open(f):
+    llines.append(parseLine(ll) if 'Completed' in ll else None)
+
+llines = filter(None,llines)
+print '\n'.join([str(lline) for lline in llines])
 
 yarr = [ll.duration for ll in llines]
 xarr = [ll.nrecs for ll in llines]
