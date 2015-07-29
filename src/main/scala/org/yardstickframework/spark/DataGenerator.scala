@@ -185,12 +185,7 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
       }
       rdd
     }
-    //    if (optIcInfo.isDefined) {
-    //      optIcInfo.get.icCache.savePairs(rdd)
-    //      optIcInfo.get.icCache
-    //    } else {
     rdd
-    //    }
   }
 }
 
