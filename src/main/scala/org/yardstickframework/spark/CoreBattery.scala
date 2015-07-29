@@ -80,6 +80,7 @@ object CoreTestMatrix {
       val dir = name.replace(" ", "/")
       val mat = TestMatrixSpec("core-smoke", "1.0", GenDataParams(nRecs, nPartitions, Some(testDims.minVal),
         Some(testDims.maxVal), Some(skew)))
+      println("HERE AGAIN !!!!!!!!!!")
       val dgen = new SingleSkewDataGenerator(sc, mat.genDataParams, useIgnite, if (useIgnite) Some(cacheName) else None)
       val rdd = dgen.genData()
       val battery = new CoreBattery(sc, name, dir, rdd)

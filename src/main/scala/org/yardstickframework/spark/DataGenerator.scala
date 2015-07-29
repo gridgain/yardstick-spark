@@ -114,15 +114,18 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
       type RddK = RddKey
       type RddV = RddVal
       val cacheName = optCacheName.get
-      val iconf = new IgniteConfiguration()
-      if (System.getProperties().contains("IGNITE_HOME")) {
-        iconf.setIgniteHome(System.getProperty("IGNITE_HOME"))
-      }
+//      val iconf = new IgniteConfiguration().setI
+//      if (System.getProperties().contains("IGNITE_HOME")) {
+//        iconf.setIgniteHome(System.getProperty("IGNITE_HOME"))
+//      }
 
-      val ic = new IgniteContext[RddK, RddV](sc,
+      val igHome = System.getProperty("IGNITE_HOME")
+      println(s"3: IGNITE_HOME is ${igHome}")
+      val ic = new IgniteContext[RddK, RddV](sc, "file:///root/yardstick-spark/config/spark-aws-config.xml")
 //        () ⇒ SparkAbstractBenchmark.igniteConfiguration[TypeTag[RddKey], TypeTag[RddVal]](cacheName))
-          () ⇒ iconf)
-
+//          () ⇒ new IgniteConfiguration().setIgniteHome(igHome))
+//          () ⇒ new IgniteConfiguration())
+//      ic.ignite.configuration.setIgniteHome(igHome)
       import ic.sqlContext.implicits._
       val cache: IgniteRDD[Long, String] = ic.
         fromCache(new TestCacheConfiguration[Long, String]().cacheConfiguration(cacheName))
@@ -153,7 +156,12 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
         }
         out
       }, dataToBc.nPartitions).persist()
-      cache.savePairs(sc.parallelize((0 until dataToBc.nRecords).toList.map { x => (x.toLong, s"Hello: $x") }, dataToBc.nPartitions))
+      cache.savePairs(sc.parallelize((0 until dataToBc.nRecords).toList.map { x =>
+        (x.toLong, s"Hello: $x") }, dataToBc.nPartitions).mapPartitions { iter =>
+           val igHome = System.getProperty("IGNITE_HOME")
+          println(s"WORKER IGNITE_HOME is ${igHome}")
+        iter
+      })
       cache
     } else {
       val rddSeq = sc.parallelize((0 until dataParams.nPartitions).toSeq, dataParams.nPartitions)
