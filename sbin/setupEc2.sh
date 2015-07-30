@@ -1,9 +1,10 @@
-cat <<-"EOF" >> ~/.bash_profile
+cat <<-"EOF" > ~/.bash_profile
 export JAVA_HOME=/usr/lib/jvm/java-1.7.0
 export SCALA_HOME=/root/scala-2.11.2
 export PATH=$SCALA_HOME/bin:$PATH
-export SPARK_HOME=/root/spark-1.4.0
+export SPARK_HOME=/root/spark-1.4.1
 export PATH=.:"$SPARK_HOME/bin:$SPARK_HOME/sbin:$PATH"
+export IGNITE_HOME=/mnt/ignite
 export PS1="\u@\h \W]\$ "
 unset HISTFILESIZE
 HISTSIZE=30000
@@ -13,14 +14,16 @@ shopt -s histappend
 set -o vi
 alias ll='ls -lrta'
 hist() { history | tail -n $1 ; }
+isigup() { ps -ef | egrep IGNITE_PROG_NAME | grep -v grep | awk '{print $2}' ; }
 EOF
 
-LOGON_SCRIPT=~/logon-script.sh
+export LOGON_SCRIPT=~/logon-script.sh
 cat <<-"EOF" > $LOGON_SCRIPT 
+export LOGON_SCRIPT=~/logon-script.sh
 export YARD_SPARK=/root/yardstick-spark
 export SL="$(cat $SPARK_HOME/conf/slaves | tr '\n' ' ')"
 sshall() { for h in $SL; do echo $h; ssh $h "$1"; done ; }
-rsyncall() { for h in $SL; do echo $h; rsync -auv $1 $h: ; done ; }
+rsyncall() { dest=${2:-"$1"}; for h in $SL; do echo $h; rsync -auv $1 $h:$dest ; done ; }
 alias b='vi $LOGON_SCRIPT; source $LOGON_SCRIPT'
 slave1() { echo "$SL" | cut -d' ' -f1 ; }
 sparkpi() { spark-submit --master $MASTER --class org.apache.spark.examples.SparkPi $SPARK_HOME/examples/target/scala-2.11/*example*.jar ; }
@@ -33,18 +36,32 @@ EOF
 sed -i $LOGON_SCRIPT -e "s/\$LOGON_SCRIPT/$LOGON_SCRIPT/g"
 chmod +x $LOGON_SCRIPT
 source $LOGON_SCRIPT
+source ~/.bash_profile
 cd /root
 sudo wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
 sudo sed -i s/\$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo
 sudo yum install -y apache-maven
 mvn --version
-wget https://github.com/apache/spark/archive/v1.4.0.tar.gz
-tar -xvf v1.4.0.tar.gz
+cd /mnt
+wget http://mirrors.ibiblio.org/apache//incubator/ignite/1.3.0/apache-ignite-1.3.0-incubating-src.zip
+unzip  apache-ignite-1.3.0-incubating-src.zip
+ln -s /mnt/apache-ignite-1.3.0-incubating-src /mnt/ignite
+cd /mnt/ignite
+mvn clean package -DskipTests -Dmaven.javadoc.skip=true -Prelease,lgpl
+echo "export IGNITE_HOME=/mnt/ignite" >> ~/.bash_profile
+export IGNITE_HOME=/mnt/ignite
+sshall "mkdir -p $IGNITE_HOME"
+ln -s $YARD_SPARK/config/spark-aws-config.xml /mnt/ignite/config/spark-aws-config.xml 
+rsyncall $IGNITE_HOME
+
+cd /root
+wget https://github.com/apache/spark/archive/v1.4.1.tar.gz
+tar -xvf v1.4.1.tar.gz
 wget http://downloads.typesafe.com/scala/2.11.2/scala-2.11.2.tgz
 tar -xvf scala-2.11.2.tgz
 wget http://downloads.typesafe.com/zinc/0.3.7/zinc-0.3.7.tgz
 tar -xvf zinc-0.3.7.tgz
-cp -p /root/spark/conf/slaves /root/spark-1.4.0/conf/
+cp -p /root/spark/conf/slaves /root/spark-1.4.1/conf/
 source $LOGON_SCRIPT  # need to do this after copying conf/slaves to get updated slaves list
 zinc  # launch zinc server
 cd $SPARK_HOME
@@ -74,10 +91,10 @@ s3cmd --version
 export PATH=$PATH:$(pwd)
 
 rsyncall /root/scala-2.11.2 
-sshall "mkdir /root/spark-1.4.0"
-rsyncall /root/spark-1.4.0
+sshall "mkdir /root/spark-1.4.1"
+rsyncall /root/spark-1.4.1
 rsyncall ~/.bash_profile
 rsyncall $LOGON_SCRIPT 
-#spark-submit --master $MASTER --class org.yardstickframework.spark.SparkCoreRDDBenchmark ./target/yardstick-spark-uber-0.0.1.jar -CORE_CONFIG_FILE=config/coreTests.yml -cfg file:///root/yardstick-spark/config/hosts.xml -nn 1 -v -b 1 -w 60 -d 10 -t 1  -sm PRIMARY_SYNC -dn SparkCoreRDDBenchmark -cn tx -sn SparkNode
+# spark-submit --master $MASTER --class org.yardstickframework.spark.SparkCoreRDDBenchmark ./target/yardstick-spark-uber-0.0.1.jar -CORE_CONFIG_FILE=$YARDSTICK_HOME/config/coreTests.yml -cfg file:///mnt/ignite/config/spark-aws-config.xml -nn 1 -v -b 1 -w 60 -d 10 -t 1  -sm PRIMARY_SYNC -dn SparkCoreRDDBenchmark -cn core -sn SparkNode
 
 

@@ -21,7 +21,7 @@ import org.apache.ignite.Ignite
 import org.apache.ignite.yardstick.{IgniteDriverNode, IgniteNode}
 import org.yardstickframework.BenchmarkConfiguration
 
-class SparkDriverNode(clientMode: Boolean) extends IgniteDriverNode(clientMode) {
+class SparkDriverNode(clientMode: Boolean) extends IgniteDriverNode(false /*clientMode */) {
 
   var ignition : Ignite = _
 

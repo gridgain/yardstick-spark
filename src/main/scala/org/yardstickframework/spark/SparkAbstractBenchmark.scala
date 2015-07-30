@@ -95,7 +95,7 @@ abstract class SparkAbstractBenchmark[RddK,RddV](val cacheName: String)
 
 object SparkAbstractBenchmark {
   val IP_FINDER = new TcpDiscoveryVmIpFinder(true)
-  def igniteConfiguration[RddK,RddV](gridName: String, client: Boolean = true)
+  def igniteConfiguration[RddK,RddV](gridName: String /*, client: Boolean = false */)
     (implicit rddK : TypeTag[RddK], rddV: TypeTag[RddV]): IgniteConfiguration = {
     val cfg = new IgniteConfiguration
     val discoSpi = new TcpDiscoverySpi
@@ -103,7 +103,7 @@ object SparkAbstractBenchmark {
     cfg.setDiscoverySpi(discoSpi)
     cfg.setCacheConfiguration(new TestCacheConfiguration[TypeTag[RddK], TypeTag[RddV]]()
       .cacheConfiguration(gridName))
-    cfg.setClientMode(client)
+    cfg.setClientMode(false/*client*/)
     cfg.setGridName(gridName)
     cfg
   }
@@ -116,8 +116,12 @@ class TestCacheConfiguration[RddK,RddV] {
     ccfg.setBackups(1)
     ccfg.setName(gridName)
     ccfg.setCacheMode(CacheMode.PARTITIONED)
-    ccfg.setIndexedTypes(rddK.mirror.runtimeClass(rddK.tpe.typeSymbol.asClass),
-      rddV.mirror.runtimeClass(rddV.tpe.typeSymbol.asClass))
+    // Indexing is only useful for SQL operations
+    if (false) {
+      // TODO(enable if in SQL tests
+      ccfg.setIndexedTypes(rddK.mirror.runtimeClass(rddK.tpe.typeSymbol.asClass),
+        rddV.mirror.runtimeClass(rddV.tpe.typeSymbol.asClass))
+    }
     ccfg
   }
 }
