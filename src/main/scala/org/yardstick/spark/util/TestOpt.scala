@@ -1,4 +1,4 @@
-package org.yardstickframework.spark
+package org.yardstick.spark.util
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -18,16 +18,7 @@ package org.yardstickframework.spark
  */
 
 /**
- * SparkBenchmarkParameters
- *
+ * Created by sany on 27/6/15.
  */
-import com.beust.jcommander._
-import org.apache.ignite.yardstick.IgniteBenchmarkArguments
-
-class SparkBenchmarkArguments extends IgniteBenchmarkArguments {
-
-    @Parameter(names = Array("-sparkcfg", "--sparkConfig"), description = "Configuration file")
-//    @Parameter(names = "-sparkcfg", description = "Configuration file")
-    val sparkCfg = "config/twitter-sql.yml"
-
-}
+case class TestOpt(dataType:String,name: String, numRecords: Int, uniqueKeys: Int, keyLength: Int, uniqueValues: Int, valueLength: Int,
+                   numPartitions: Int, randomSeed: Int, persistenceType: String)

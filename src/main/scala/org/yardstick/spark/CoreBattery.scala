@@ -14,18 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.yardstickframework.spark
+package org.yardstick.spark
 
 import java.text.SimpleDateFormat
 import java.util.Date
 
 import org.apache.spark.SparkContext
-import org.yardstickframework.spark.YsSparkTypes._
-import org.yardstickframework.spark.util.{YardstickLogger, TimedResult}
+import org.yardstick.spark.YsSparkTypes._
+import org.yardstick.spark.util.{TimedResult, YardstickLogger}
+import org.yardstick.spark.util.YardstickLogger._
 
 import scala.collection.mutable
-
-import YardstickLogger._
 
 case class TestResult(testName: String, resultName: String,
   optCount: Option[Int] = None, optResult: Option[Any] = None, stdOut: Option[String] = None,

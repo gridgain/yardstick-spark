@@ -14,17 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.yardstickframework.spark
+package org.yardstick.spark
 
 import java.io.Serializable
 
-import org.apache.ignite.configuration.IgniteConfiguration
 import org.apache.ignite.spark.{IgniteContext, IgniteRDD}
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
-import org.yardstickframework.ignite.util.Twitter
-import org.yardstickframework.spark.YsSparkTypes._
+import org.yardstick.spark.YsSparkTypes._
+import org.yardstick.spark.util.Twitter
 
 import scala.collection.mutable
 
@@ -110,7 +109,6 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
     }
     val bcData = sc.broadcast(dataToBc)
     val rdd = if (useIgnite) {
-      import reflect.runtime.universe._
       type RddK = RddKey
       type RddV = RddVal
       val cacheName = optCacheName.get
@@ -126,7 +124,6 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
 //          () ⇒ new IgniteConfiguration().setIgniteHome(igHome))
 //          () ⇒ new IgniteConfiguration())
 //      ic.ignite.configuration.setIgniteHome(igHome)
-      import ic.sqlContext.implicits._
       val cache: IgniteRDD[Long, String] = ic.
         fromCache(new TestCacheConfiguration[Long, String]().cacheConfiguration(cacheName))
 

@@ -14,17 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.yardstickframework.ignite
+package org.yardstick.spark
 
 import org.apache.ignite.spark.IgniteRDD
 import org.apache.spark.sql.DataFrame
+import org.yardstick.spark.util.{CommonFunctions, TimedResult, Twitter, YamlConfiguration}
 import org.yardstickframework._
-import org.yardstickframework.ignite.util._
-import org.yardstickframework.spark.util.{TimedResult, YamlConfiguration}
-import org.yardstickframework.spark.{SparkIgniteAbstractBenchmark, SqlBatteryConfigs, SqlTestMatrix}
 
 import scala.collection.JavaConverters._
 
+@deprecated
 class SparkIgniteSqlBenchmark extends SparkIgniteAbstractBenchmark {
 
   var sqlConfig: YamlConfiguration = _
@@ -41,7 +40,7 @@ class SparkIgniteSqlBenchmark extends SparkIgniteAbstractBenchmark {
     sqlConfig = new YamlConfiguration(configFile)
     println(sqlConfig)
     val csvFile = sqlConfig("twitter.input.file").getOrElse("Twitter_Data.csv")
-    cache = new CommonFunctions().getIgniteCacheConfig(sc)
+    cache = new CommonFunctions().getIgniteCacheConfig(sc, "blah")
     new CommonFunctions().loadDataInToIgniteRDD(sc, cache, csvFile, "\t")
   }
 
@@ -58,6 +57,7 @@ class SparkIgniteSqlBenchmark extends SparkIgniteAbstractBenchmark {
 
 }
 
+@deprecated
 object SparkIgniteSqlBenchmark {
   def main(args: Array[String]) {
     val b = new SparkIgniteSqlBenchmark

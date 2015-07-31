@@ -1,5 +1,3 @@
-package org.yardstickframework.spark.util
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -15,10 +13,31 @@ package org.yardstickframework.spark.util
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+*/
+package org.yardstick.spark
 
-/**
- * Created by sany on 27/6/15.
- */
-case class TestOpt(dataType:String,name: String, numRecords: Int, uniqueKeys: Int, keyLength: Int, uniqueValues: Int, valueLength: Int,
-                   numPartitions: Int, randomSeed: Int, persistenceType: String)
+import org.apache.ignite.Ignition
+import org.apache.spark._
+import org.apache.spark.sql.SQLContext
+import org.yardstickframework._
+
+abstract class SparkIgniteAbstractBenchmark extends BenchmarkDriverAdapter {
+  var sc: SparkContext = _
+  var sqlContext: SQLContext = _
+
+  @throws(classOf[Exception])
+  override def setUp(cfg: BenchmarkConfiguration) {
+//    super.setUp(cfg)
+    val ignition  = Ignition.start("config/example-cache.xml")
+    sc = new SparkContext("local[2]","itest")
+    sqlContext = new SQLContext(sc)
+
+  }
+
+  @throws(classOf[Exception])
+  override def tearDown() {
+    sc.stop
+
+  }
+}
+

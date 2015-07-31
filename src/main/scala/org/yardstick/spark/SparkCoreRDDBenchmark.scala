@@ -14,15 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-package org.yardstickframework.spark
+package org.yardstick.spark
 
 import org.apache.ignite.configuration.IgniteConfiguration
 import org.apache.ignite.spark.{IgniteContext, IgniteRDD}
+import org.yardstick.spark.SparkCoreRDDBenchmark._
+import org.yardstick.spark.YsSparkTypes.{RddKey, RddVal}
+import org.yardstick.spark.util.YamlConfiguration
 import org.yardstickframework._
-import org.yardstickframework.spark.YsSparkTypes.{RddKey, RddVal}
-
-import SparkCoreRDDBenchmark._
-import org.yardstickframework.spark.util.YamlConfiguration
 
 /**
  * How to run this in Intellij :
@@ -51,9 +50,6 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey, RddVal](CORE_
   override def setUp(cfg: BenchmarkConfiguration): Unit = {
     println(s"setUp BenchmarkConfiguration=${cfg.toString}")
     super.setUp(cfg)
-    import collection.JavaConverters._
-//    coreTestsFile = cfg.customProperties.asScala
-//        .getOrElse("CORE_CONFIG_FILE", "/root/yardstick-spark/config/coreTests.yml")
   }
 
 
@@ -156,9 +152,9 @@ object SparkCoreRDDBenchmark {
   val CORE_CACHE_NAME = "core"
 
   def main(args: Array[String]) {
-    val b = new SparkCoreRDDBenchmark
     val cfg = new BenchmarkConfiguration()
     cfg.commandLineArguments(args)
+    val b = new SparkCoreRDDBenchmark
     b.setUp(cfg)
     b.test(new java.util.HashMap[AnyRef, AnyRef]())
 

@@ -12,20 +12,18 @@
  limitations under the License.
  */
 
-package org.yardstickframework.spark
+package org.yardstick.spark
 
 import org.apache.ignite.cache.CacheMode
 import org.apache.ignite.cache.query.annotations.{QuerySqlField, QueryTextField}
 import org.apache.ignite.configuration.{CacheConfiguration, IgniteConfiguration}
 import org.apache.ignite.scalar.scalar._
-import org.apache.ignite.spark.{IgniteContext, IgniteRDD}
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder
 import org.apache.ignite.yardstick.IgniteAbstractBenchmark
 import org.apache.spark._
-import org.apache.spark.sql.hive.HiveContext
+import org.apache.spark.sql.SQLContext
 import org.yardstickframework._
-import org.yardstickframework.spark.YsSparkTypes.{RddKey, RddVal}
 
 import scala.annotation.meta.field
 import scala.reflect.runtime.universe._
@@ -36,20 +34,24 @@ abstract class SparkAbstractBenchmark[RddK,RddV](val cacheName: String)
                                                                  with java.io.Serializable {
 
   var sc: SparkContext = _
-  var sqlContext: HiveContext = _
+  var sqlContext: SQLContext = _
 
   type ScalarCacheQuerySqlField = QuerySqlField@field
   type ScalarCacheQueryTextField = QueryTextField@field
 
 //  val PARTITIONED_CACHE_NAME = "partitioned"
 
+
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration) {
 //    super.setUp(cfg)
+    val args = cfg.commandLineArguments
     val testName = "SparkBenchmark"  // TODO: specify Core or SQL
     val sconf = new SparkConf()
       .setAppName(testName)
-    val master = if (sconf.contains("spark.master")) {
+    val master = if (args.contains("--master")) {
+      args(args.indexOf("--master")+1)
+    } else if (sconf.contains("spark.master")) {
       sconf.get("spark.master")
     } else if (System.getenv().containsKey("MASTER")) {
       System.getenv("MASTER")
@@ -84,7 +86,7 @@ abstract class SparkAbstractBenchmark[RddK,RddV](val cacheName: String)
     sc = new SparkContext(sconf)
     sc.setLocalProperty("spark.akka.askTimeout","180")
     sc.setLocalProperty("spark.driver.maxResultSize","2GB")
-    sqlContext = new HiveContext(sc)
+    sqlContext = new SQLContext(sc)
   }
 
   @throws(classOf[Exception])

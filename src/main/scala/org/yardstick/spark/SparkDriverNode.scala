@@ -1,4 +1,4 @@
-package org.yardstickframework.spark
+package org.yardstick.spark
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more

@@ -1,4 +1,4 @@
-package org.yardstickframework.spark.util
+package org.yardstick.spark.util
 
 import org.apache.spark.{SparkContext, SparkConf}
 

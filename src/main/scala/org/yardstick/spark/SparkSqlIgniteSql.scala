@@ -1,32 +1,31 @@
-package org.yardstickframework
+package org.yardstick.spark
 
 import org.apache.ignite.spark.IgniteRDD
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.storage.StorageLevel
-import org.yardstickframework.ignite.util._
-import org.yardstickframework.spark.util.{LoadFunctions, TimedResult, YamlConfiguration}
-import org.yardstickframework.spark.{CoreTestConfig, SparkIgniteAbstractBenchmark, SqlBatteryConfigs, SqlTestMatrix}
+import org.yardstick.spark.SparkSqlIgniteSql._
+import org.yardstick.spark.util.{CommonFunctions, TimedResult, Twitter, YamlConfiguration}
+import org.yardstickframework.BenchmarkConfiguration
 
 import scala.collection.JavaConverters._
 
-
-class SparkSqlIgniteSql extends SparkIgniteAbstractBenchmark {
+class SparkSqlIgniteSql extends SparkAbstractBenchmark(SQL_CACHE_NAME) {
   var coreTestsFile : String = "config/sqlTests.yml"
   var sqlConfig: YamlConfiguration = _
   var cache: IgniteRDD[String, Twitter] = _
   val timer = new TimedResult()
   var dF: DataFrame = _
 
-
-  @throws(classOf[Exception])
+    @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration): Unit = {
+    println(s"setUp BenchmarkConfiguration=${cfg.toString}")
     super.setUp(cfg)
-    val configFile = cfg.customProperties.asScala
-      .getOrElse("SQL_CONFIG_FILE", "config/benchmark-twitter.yml")
+    val configs = cfg.customProperties.asScala
+//      val configFile = configs.getOrElse("SQL_CONFIG_FILE", "config/benchmark-twitter.yml")
+      val configFile = "config/benchmark-twitter.yml"
     sqlConfig = new YamlConfiguration(configFile)
     println(sqlConfig)
        val  csvFile = sqlConfig("twitter.input.file").getOrElse("Twitter_Data.csv")
-      cache = new CommonFunctions().getIgniteCacheConfig(sc)
+      cache = new CommonFunctions().getIgniteCacheConfig(sc, cacheName)
    // new CommonFunctions().loadDataInToIgniteRDD(sc, cache, csvFile, "\t")
 
     //val df = LoadFunctions.loadDataCSVFile(sqlContext, csvFile, "\t")
@@ -85,9 +84,12 @@ class SparkSqlIgniteSql extends SparkIgniteAbstractBenchmark {
 }
 
 object SparkSqlIgniteSql {
+  val SQL_CACHE_NAME = "sqlcache"
   def main(args: Array[String]) {
+    val cfg = new BenchmarkConfiguration()
+    cfg.commandLineArguments(args)
     val b = new SparkSqlIgniteSql
-    b.setUp(new BenchmarkConfiguration())
+    b.setUp(cfg)
     b.test(new java.util.HashMap[AnyRef, AnyRef]())
 
   }

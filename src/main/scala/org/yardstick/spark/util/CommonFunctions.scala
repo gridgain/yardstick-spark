@@ -1,8 +1,8 @@
-package org.yardstickframework.ignite.util
+package org.yardstick.spark.util
 
 import org.apache.ignite.cache.CacheMode
 import org.apache.ignite.configuration.{CacheConfiguration, IgniteConfiguration}
-import org.apache.ignite.spark.{IgniteRDD, IgniteContext}
+import org.apache.ignite.spark.{IgniteContext, IgniteRDD}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
@@ -25,11 +25,11 @@ class CommonFunctions {
     igniteRdd.sql(query)
   }
 
-  def getIgniteCacheConfig(sc: SparkContext): IgniteRDD[String, Twitter] = {
+  def getIgniteCacheConfig(sc: SparkContext, cacheName: String): IgniteRDD[String, Twitter] = {
     var igniteContext = new IgniteContext[String, Twitter](sc,
       () => new IgniteConfiguration())
     val cacheCfg = new CacheConfiguration[String, Twitter]()
-    cacheCfg.setName("partitioned")
+    cacheCfg.setName(cacheName)
     cacheCfg.setCacheMode(CacheMode.PARTITIONED)
     cacheCfg.setIndexedTypes(classOf[String], classOf[Twitter])
     igniteContext.fromCache(cacheCfg)

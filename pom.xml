@@ -265,7 +265,7 @@
           <configuration>
             <archive>
               <manifest>
-                  <mainClass>org.yardstickframework.spark.SparkCoreRDDBenchmark</mainClass>
+                  <mainClass>org.yardstick.spark.SparkCoreRDDBenchmark</mainClass>
               </manifest>
             </archive>
             <descriptorRefs>

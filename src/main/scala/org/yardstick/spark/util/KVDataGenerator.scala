@@ -1,4 +1,4 @@
-package org.yardstickframework.spark.util
+package org.yardstick.spark.util
 
 import java.util.Random
 

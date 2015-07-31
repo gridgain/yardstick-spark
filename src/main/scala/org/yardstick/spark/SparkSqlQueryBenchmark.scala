@@ -12,17 +12,15 @@
  limitations under the License.
  */
 
-package org.yardstickframework.spark
-
+package org.yardstick.spark
 
 import org.apache.ignite.spark.IgniteRDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.storage.StorageLevel
+import org.yardstick.spark.SparkSqlQueryBenchmark._
+import org.yardstick.spark.util.{LoadFunctions, TimedResult, Twitter, YamlConfiguration}
 import org.yardstickframework._
-import org.yardstickframework.ignite.util._
 import org.yardstickframework.impl.BenchmarkLoader
-import org.yardstickframework.spark.SparkSqlQueryBenchmark._
-import org.yardstickframework.spark.util.{LoadFunctions, TimedResult, YamlConfiguration}
 
 import scala.collection.JavaConverters._
 

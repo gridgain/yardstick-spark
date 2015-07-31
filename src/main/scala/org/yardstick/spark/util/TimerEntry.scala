@@ -1,4 +1,4 @@
-package org.yardstickframework.spark
+package org.yardstick.spark.util
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -17,19 +17,13 @@ package org.yardstickframework.spark
  * limitations under the License.
  */
 
-import org.apache.ignite.yardstick.IgniteNode
-import org.apache.ignite.{Ignite, Ignition}
-import org.yardstickframework.{BenchmarkConfiguration, BenchmarkServer}
-
-class SparkNode extends IgniteNode {
-
-  var ignition : Ignite = _
-
-  @throws[Exception]
-    override def start(cfg: BenchmarkConfiguration): Unit ={
-    super.start(cfg)
-//        ignition = Ignition.start(SparkAbstractBenchmark.configuration())
-    }
-
+/**
+ * Created by sany.
+ */
+//todo rename and add some docs
+//todo EventsMap?
+//todo use TimingInfo
+//
+case class TimerEntry(name: String, start: Long, var end: Long = -1) {
+  def elapsed = end - start
 }
-

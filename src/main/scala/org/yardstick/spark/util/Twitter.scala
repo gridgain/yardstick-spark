@@ -1,4 +1,4 @@
-package org.yardstickframework.ignite.util
+package org.yardstick.spark.util
 
 import org.apache.ignite.scalar.scalar._
 

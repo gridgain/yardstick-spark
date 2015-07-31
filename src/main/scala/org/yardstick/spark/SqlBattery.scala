@@ -1,20 +1,18 @@
-package org.yardstickframework.spark
+package org.yardstick.spark
 
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import org.apache.ignite.spark.{IgniteRDD, IgniteContext}
-import org.apache.spark.sql.hive.HiveContext
+import org.apache.ignite.spark.IgniteRDD
+import org.apache.spark.sql.SQLContext
 import org.apache.spark.storage.StorageLevel
-import org.yardstickframework.ignite.util.CommonFunctions
-import org.yardstickframework.spark.util.{LoadFunctions, YamlConfiguration}
-import org.yardstickframework.spark.YsSparkTypes.Action
-import org.yardstickframework.spark.YsSparkTypes._
-import org.yardstickframework.spark.util.YardstickLogger._
+import org.yardstick.spark.YsSparkTypes.{Action, SqlCollect, SqlCollectAsList, _}
+import org.yardstick.spark.util.YardstickLogger._
+import org.yardstick.spark.util.{CommonFunctions, LoadFunctions, YamlConfiguration}
 
 import scala.collection.mutable
 
-case class SqlBatteryConfigs(ic: IgniteRDD[DataFrameKey, DataFrameVal], sQLContext: HiveContext, sqlConfig: YamlConfiguration, useIgnite: Boolean,fileType:Seq[String])
+case class SqlBatteryConfigs(ic: IgniteRDD[DataFrameKey, DataFrameVal], sqlContext: SQLContext, sqlConfig: YamlConfiguration, useIgnite: Boolean,fileType:Seq[String])
 
 object SqlTestMatrix {
   val A = Array
@@ -46,9 +44,9 @@ object SqlTestMatrix {
   }
   def loadData(sqlBatteryConfigs:SqlBatteryConfigs,fileName:String){
 
-    new CommonFunctions().loadDataInToIgniteRDD(sqlBatteryConfigs.sQLContext.sparkContext, sqlBatteryConfigs.ic, fileName, "\t")
+    new CommonFunctions().loadDataInToIgniteRDD(sqlBatteryConfigs.sqlContext.sparkContext, sqlBatteryConfigs.ic, fileName, "\t")
 
-    val df = LoadFunctions.loadDataCSVFile(sqlBatteryConfigs.sQLContext, fileName, "\t")
+    val df = LoadFunctions.loadDataCSVFile(sqlBatteryConfigs.sqlContext, fileName, "\t")
     df.registerTempTable("Twitter")
     df.persist(StorageLevel.MEMORY_ONLY)
   }
@@ -73,13 +71,13 @@ class SqlBattery(sqlBatteryConfigs: SqlBatteryConfigs,
       )
     } else {
       Seq(
-        (s"$testName/COUNT", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
+        (s"$testName/COUNT", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
           """SELECT COUNT(*) from Twitter""".stripMargin))),
-        (s"$testName/ORDERBY", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
+        (s"$testName/ORDERBY", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
           """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin))),
-        (s"$testName/GROUPBY", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
+        (s"$testName/GROUPBY", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
          """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at  limit 50""".stripMargin))),
-        (s"$testName/JOIN", sqlBatteryConfigs.sQLContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.join",
+        (s"$testName/JOIN", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.join",
           """  SELECT e.username AS userName, m.tweet AS tweetText FROM Twitter e INNER JOIN Twitter m ON e.id = m.id;""".stripMargin)))
      )
     }

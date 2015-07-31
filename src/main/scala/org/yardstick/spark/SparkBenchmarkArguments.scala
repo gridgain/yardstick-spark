@@ -1,3 +1,5 @@
+package org.yardstick.spark
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -13,31 +15,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
-package org.yardstickframework.spark
+ */
 
-import org.apache.ignite.Ignition
-import org.apache.spark._
-import org.apache.spark.sql.hive.HiveContext
-import org.yardstickframework._
+/**
+ * SparkBenchmarkParameters
+ *
+ */
+import com.beust.jcommander._
+import org.apache.ignite.yardstick.IgniteBenchmarkArguments
 
-abstract class SparkIgniteAbstractBenchmark extends BenchmarkDriverAdapter {
-  var sc: SparkContext = _
-  var sqlContext: HiveContext = _
+class SparkBenchmarkArguments extends IgniteBenchmarkArguments {
 
-  @throws(classOf[Exception])
-  override def setUp(cfg: BenchmarkConfiguration) {
-    super.setUp(cfg)
-    val ignition  = Ignition.start("config/example-cache.xml")
-    sc = new SparkContext("local[2]","itest")
-    sqlContext = new HiveContext(sc)
+    @Parameter(names = Array("-sparkcfg", "--sparkConfig"), description = "Configuration file")
+//    @Parameter(names = "-sparkcfg", description = "Configuration file")
+    val sparkCfg = "config/twitter-sql.yml"
 
-  }
-
-  @throws(classOf[Exception])
-  override def tearDown() {
-    sc.stop
-
-  }
 }
-
