@@ -19,8 +19,8 @@ pr( "** Generating report **")
 def grabData(rootdir):
    import glob2
    files = glob2.glob("%s/**/*.log" %rootdir)
-   for f in files:
-       pr("%s" %f)
+   # for f in files:
+       # pr("%s" %f)
    return files
 
 import os
@@ -60,15 +60,12 @@ def repch(chars, targ, src):
 
 incx = 0
 def parseLine(line):
-    pr(line)
     trunced = line[line.find('Completed ')+ len('Completed '):]
-    pr(trunced)
-    pr('aht?')
     trunced = 'Data ' + trunced
     t = repch('/-=\n',' ', trunced).split(' ')
     # t = filter(None,[el for subl in t for el in subl])
     t = filter(None,t)
-    pr("%s" %t)
+    # pr("%s" %t)
     # ['Data', '0727', '095121', 'CoreSmoke', '10000000recs', '20parts', '1skew', 'native', 'BasicMap', 'Count', 'duration', '4942', 'millis', 'count', '10000000']
 
     global incx
@@ -94,7 +91,6 @@ def parseLine(line):
         t[inc(2)], #'duration' duration
         t[inc(3)] # 'millis' 'count' count
         ]
-    pr(str(t))
     ll = LLine(*t)
     # ll.nrecs = int(int(ll.nrecs)/1000)
     # ll.duration = int(int(ll.nrecs)/100)
@@ -108,7 +104,20 @@ for f in files:
     llines.append(parseLine(ll) if 'Completed' in ll else None)
 
 llines = filter(None,llines)
+# pr("# lines is %d" %len(llines))
 print '\n'.join([str(lline) for lline in llines])
+
+with open('report.csv','w') as f:
+    x = 0
+    for lline in llines:
+        if not x:
+          msg = ','.join([l for l in lline._fields]) + '\n'
+          f.write(msg)
+          pr(msg.strip())
+          x += 1
+        msg = ','.join(lline)+'\n'
+        f.write(msg)
+        pr(msg.strip())
 
 yarr = [ll.duration for ll in llines]
 xarr = [ll.nrecs for ll in llines]
@@ -122,17 +131,63 @@ labels = [makeLabel(ll) for ll in llines]
 x = 1
 title='some title'
 color=colors[x%len(colors)]
-points = ax.plot(xarr,yarr, linestyle='-', marker=markers[x%len(markers)], label="abc",color=color[0])
-ax.set_title(title,color= 'r')
-ax.set_xlabel(' ')
-ax.set_ylabel('% Resource Utilization')
-ax.patch.set_facecolor('white')
-legend = ax.legend(loc='upper left', fontsize=8)
-for label in legend.get_lines():
-  label.set_linewidth(1.0)  # the legend line width
-fig.suptitle("OpenChai Heterogenous Spark Servers - By Host", fontsize='x-large')
-import  datetime
-print 'saving figure at %s\n' %(datetime.now().isoformat())
-plt.savefig("/shared/matplotByServer.jpg")
-plt.show()
+# LLine = namedtuple('LLine', 'tstamp tname nrecs nparts nskew native xform action duration count')
 
+def seriesKey(*native):
+    # return ' '.join([native[0].native,native[0].nrecs])
+    return native[0].native
+def lkey(ll):
+    return ' '.join([ll.tname,ll.tstamp,ll.nparts,ll.nskew,ll.xform,ll.action, ll.native])
+def metrics(ll):
+    return ' '.join([ll.duration])
+
+# keys, series, metrics   = zip(*[(lkey(ll),seriesKey(ll),metrics(ll)) for ll in sortedll])
+
+# pr(str(x))
+#keys, series, metrics = zip(*x
+
+from collections import *
+from itertools import groupby
+gls={}
+vl=[]
+series={}
+def mlput(m,k, v):
+  l = m[k] if k in m else m.update(k,list())
+  l.append(v)
+
+def grouped(llist, keyf):
+  pr("In grouped: llist is %s" %str(llist))
+  g = {}
+  for ll in llist:
+    mlput(g,keyf(ll),ll)
+  return g
+
+for g,v in grouped(llines,lkey):
+  mlput(gls,g,v)
+
+for gl,v in gls.items():
+    for gs,vs in grouped(v,seriesKey):
+      mlput(series,"%s-%s" %(gl,gs),vs)
+
+from operator import attrgetter
+for sk, sv in series.items():
+    #series[sk] = sorted(sv,sv.nrecs)
+    series[sk] = sorted(sv,attrgetter(sv.nrecs))
+
+for x,ser in enumerate(series):
+  yarr = [l.duration for l in ser]
+  xarr = [l.nrecs for l in ser]
+  points = ax.plot(xarr,yarr, linestyle='-', marker=markers[x%len(markers)], label=ser.native,color=color[x])
+  # points2 = ax.plot(xarr,yarr, linestyle='-', marker=markers[x%len(markers)], label="abc",color=color[0])
+  ax.set_title(title,color= 'b')
+  ax.set_xlabel(' ')
+  ax.set_ylabel('% Resource Utilization')
+  ax.patch.set_facecolor('white')
+  legend = ax.legend(loc='upper left', fontsize=8)
+  for label in legend.get_lines():
+    label.set_linewidth(1.0)  # the legend line width
+  fig.suptitle("IgniteRDD vs Native Core Operations Performance", fontsize='x-large')
+  import  datetime
+  print 'saving figure at %s\n' %(datetime.datetime.now().isoformat())
+  plt.savefig("/tmp/report.jpg")
+  plt.show()

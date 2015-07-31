@@ -45,7 +45,7 @@ abstract class SparkAbstractBenchmark[RddK,RddV](val cacheName: String)
 
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration) {
-    super.setUp(cfg)
+//    super.setUp(cfg)
     val testName = "SparkBenchmark"  // TODO: specify Core or SQL
     val sconf = new SparkConf()
       .setAppName(testName)
