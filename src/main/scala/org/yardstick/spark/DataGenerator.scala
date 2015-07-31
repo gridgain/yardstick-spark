@@ -118,11 +118,13 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
 //        iconf.setIgniteHome(System.getProperty("IGNITE_HOME"))
 //      }
 
-      val igHome = System.getProperty("IGNITE_HOME")
-      println(s"3: IGNITE_HOME is ${igHome}")
+//      val igHome = System.getProperty("IGNITE_HOME")
+//      println(s"3: IGNITE_HOME is ${igHome}")
+      val igniteProps = System.getProperties.getProperty("ignite.properties.file",
+              "file:///root/yardstick-spark/config/spark-aws-config.xml")
+      println(s"Ignite properties file=$igniteProps")
       val ic = new IgniteContext[RddK, RddV](sc,
-        () ⇒ IgnitionEx.loadConfiguration(
-          "file:///root/yardstick-spark/config/hostname.xml").get1(), false)
+        () ⇒ IgnitionEx.loadConfiguration(igniteProps).get1(), false)
 //        () ⇒ SparkAbstractBenchmark.igniteConfiguration[TypeTag[RddKey], TypeTag[RddVal]](cacheName))
 //          () ⇒ new IgniteConfiguration().setIgniteHome(igHome))
 //          () ⇒ new IgniteConfiguration())
@@ -159,7 +161,7 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
       cache.savePairs(sc.parallelize((0 until dataToBc.nRecords).toList.map { x =>
         (x.toLong, s"Hello: $x") }, dataToBc.nPartitions).mapPartitions { iter =>
            val igHome = System.getProperty("IGNITE_HOME")
-          println(s"WORKER IGNITE_HOME is ${igHome}")
+           println(s"WORKER IGNITE_HOME is ${igHome}")
         iter
       })
       cache
