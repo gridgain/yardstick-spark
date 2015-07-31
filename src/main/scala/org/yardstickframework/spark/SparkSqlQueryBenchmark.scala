@@ -51,7 +51,7 @@ class SparkSqlQueryBenchmark extends SparkAbstractBenchmark(SQL_CACHE_NAME) {
   @throws(classOf[java.lang.Exception])
   override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
     timer("Twitter-Data-SparkSQL") {
-      SqlTestMatrix.runMatrix(SqlBatteryConfigs(cache,sqlContext,sqlConfig,false))
+      //SqlTestMatrix.runMatrix(SqlBatteryConfigs(cache,sqlContext,sqlConfig,false))
     }
     true
   }

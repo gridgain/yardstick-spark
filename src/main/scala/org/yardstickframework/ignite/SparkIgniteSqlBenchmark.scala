@@ -51,7 +51,7 @@ class SparkIgniteSqlBenchmark extends SparkIgniteAbstractBenchmark {
    // cache.sql(sqlConfig("twitter.sql.orderby",
    ///   """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin))
     val runResults = timer("Twitter-Data-IgniteSQL") {
-      SqlTestMatrix.runMatrix(SqlBatteryConfigs(cache,sqlContext,sqlConfig,true))
+      //SqlTestMatrix.runMatrix(SqlBatteryConfigs(cache,sqlContext,sqlConfig,true))
     }
     true
   }

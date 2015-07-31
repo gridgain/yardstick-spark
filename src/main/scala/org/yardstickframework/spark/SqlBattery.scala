@@ -5,14 +5,16 @@ import java.util.Date
 
 import org.apache.ignite.spark.{IgniteRDD, IgniteContext}
 import org.apache.spark.sql.hive.HiveContext
-import org.yardstickframework.spark.util.YamlConfiguration
+import org.apache.spark.storage.StorageLevel
+import org.yardstickframework.ignite.util.CommonFunctions
+import org.yardstickframework.spark.util.{LoadFunctions, YamlConfiguration}
 import org.yardstickframework.spark.YsSparkTypes.Action
 import org.yardstickframework.spark.YsSparkTypes._
 import org.yardstickframework.spark.util.YardstickLogger._
 
 import scala.collection.mutable
 
-case class SqlBatteryConfigs(ic: IgniteRDD[DataFrameKey, DataFrameVal], sQLContext: HiveContext, sqlConfig: YamlConfiguration, useIgnite: Boolean)
+case class SqlBatteryConfigs(ic: IgniteRDD[DataFrameKey, DataFrameVal], sQLContext: HiveContext, sqlConfig: YamlConfiguration, useIgnite: Boolean,fileType:Seq[String])
 
 object SqlTestMatrix {
   val A = Array
@@ -23,22 +25,32 @@ object SqlTestMatrix {
     val resArr = mutable.ArrayBuffer[TestResult]()
     val dtf = new SimpleDateFormat("MMdd-hhmmss").format(new Date)
 
+      for(file<-sqlBatteryConfigs.fileType) {
+        val rawname = "SQLSmoke"
+        val tname = s"$dtf/$rawname"
+        val igniteOrNative = if (sqlBatteryConfigs.useIgnite) "igniteSQL" else "nativeSQL"
+        val name = s"$tname ${file}file ${igniteOrNative}"
+        val dir = name.replace(" ", "/")
 
-      val rawname = "CoreSQLSmoke"
-      val tname = s"$dtf/$rawname"
-      val igniteOrNative = if (sqlBatteryConfigs.useIgnite) "igniteSQL" else "nativeSQL"
-      val name = s"$tname ${igniteOrNative}"
-      val dir = name.replace(" ", "/")
+        val optIcInfo = if (sqlBatteryConfigs.useIgnite) Some(sqlBatteryConfigs.useIgnite) else None
 
-      val optIcInfo = if (sqlBatteryConfigs.useIgnite) Some(sqlBatteryConfigs.useIgnite) else None
+        loadData(sqlBatteryConfigs,file)
 
-
-      val battery = new SqlBattery(sqlBatteryConfigs, name, dir)
-      val (pass, tresults) = battery.runBattery()
-      passArr += pass
-      resArr ++= tresults
+        val battery = new SqlBattery(sqlBatteryConfigs, name, dir)
+        val (pass, tresults) = battery.runBattery()
+        passArr += pass
+        resArr ++= tresults
+      }
 
     (passArr.forall(identity), resArr)
+  }
+  def loadData(sqlBatteryConfigs:SqlBatteryConfigs,fileName:String){
+
+    new CommonFunctions().loadDataInToIgniteRDD(sqlBatteryConfigs.sQLContext.sparkContext, sqlBatteryConfigs.ic, fileName, "\t")
+
+    val df = LoadFunctions.loadDataCSVFile(sqlBatteryConfigs.sQLContext, fileName, "\t")
+    df.registerTempTable("Twitter")
+    df.persist(StorageLevel.MEMORY_ONLY)
   }
 }
 
