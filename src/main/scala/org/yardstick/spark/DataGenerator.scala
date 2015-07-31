@@ -18,6 +18,7 @@ package org.yardstick.spark
 
 import java.io.Serializable
 
+import org.apache.ignite.internal.IgnitionEx
 import org.apache.ignite.spark.{IgniteContext, IgniteRDD}
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
@@ -119,7 +120,9 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
 
       val igHome = System.getProperty("IGNITE_HOME")
       println(s"3: IGNITE_HOME is ${igHome}")
-      val ic = new IgniteContext[RddK, RddV](sc, "file:///root/yardstick-spark/config/spark-aws-config.xml")
+      val ic = new IgniteContext[RddK, RddV](sc,
+        () ⇒ IgnitionEx.loadConfiguration(
+          "file:///root/yardstick-spark/config/hostname.xml").get1(), false)
 //        () ⇒ SparkAbstractBenchmark.igniteConfiguration[TypeTag[RddKey], TypeTag[RddVal]](cacheName))
 //          () ⇒ new IgniteConfiguration().setIgniteHome(igHome))
 //          () ⇒ new IgniteConfiguration())
