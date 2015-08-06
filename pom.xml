@@ -52,11 +52,20 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <yardstick.version>RELEASE</yardstick.version>
-        <ignite.version>1.3.0-incubating</ignite.version>
+        <ignite.snapshot.version>1.4.1-SNAPSHOT</ignite.snapshot.version>
         <scala.version>2.11</scala.version>
         <scala.binary.version>2.11.2</scala.binary.version>
         <spark.version>1.4.1</spark.version>
+        <ignite.version>1.4.1-SNAPSHOT</ignite.version>
+        <ignite.core.jar>${basedir}/repo-core/ignite-core-1.4.1-SNAPSHOT.jar</ignite.core.jar>
+        <ignite.aws.jar>${basedir}/repo-aws/ignite-aws-1.4.1-SNAPSHOT.jar</ignite.aws.jar>
+        <ignite.spark.jar>${basedir}/repo-spark/ignite-spark-1.4.1-SNAPSHOT.jar</ignite.spark.jar>
+        <ignite.indexing.jar>${basedir}/repo-indexing/ignite-indexing-1.4.1-SNAPSHOT.jar</ignite.indexing.jar>
+        <ignite.scalar.jar>${basedir}/repo-scalar/ignite-scalar-1.4.1-SNAPSHOT.jar</ignite.scalar.jar>
+        <ignite.log4j.jar>${basedir}/repo-log4j/ignite-log4j-1.4.1-SNAPSHOT.jar</ignite.log4j.jar>
+        <ignite.spring.jar>${basedir}/repo-spring/ignite-spring-1.4.1-SNAPSHOT.jar</ignite.spring.jar>
         <ignite-yardstick.jar>${basedir}/repo/ignite-yardstick-0.1.0.jar</ignite-yardstick.jar>
+        <jfreechart-perfupdate.jar>${basedir}/repo1/jfreechart2-2.0-pre1-perfupdate.jar</jfreechart-perfupdate.jar>
     </properties>
 
     <repositories>
@@ -67,25 +76,77 @@
     </repositories>
 
     <dependencies>
-       <dependency>
+        <dependency>
+            <groupId>org.scalafx</groupId>
+            <artifactId>scalafx_2.11</artifactId>
+            <version>8.0.40-R8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.wookietreiber</groupId>
+            <artifactId>scala-chart_${scala.version}</artifactId>
+            <version>0.4.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.ignite</groupId>
             <artifactId>ignite-yardstick</artifactId>
             <scope>system</scope>
             <systemPath>${ignite-yardstick.jar}</systemPath>
             <version>0.1.0</version>
        </dependency>
-      <dependency>
-        <groupId>org.apache.ignite</groupId>
-        <artifactId>ignite-aws</artifactId>
-        <version>1.3.0-incubating</version>
-      </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-core</artifactId>
+            <scope>system</scope>
+            <systemPath>${ignite.core.jar}</systemPath>
+            <version>${ignite.version}</version>
+       </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-aws</artifactId>
+            <scope>system</scope>
+            <systemPath>${ignite.aws.jar}</systemPath>
+            <version>${ignite.version}</version>
+       </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-scalar</artifactId>
+            <scope>system</scope>
+            <systemPath>${ignite.scalar.jar}</systemPath>
+            <version>${ignite.version}</version>
+       </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-indexing</artifactId>
+            <scope>system</scope>
+            <systemPath>${ignite.indexing.jar}</systemPath>
+            <version>${ignite.version}</version>
+       </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-spark</artifactId>
+            <scope>system</scope>
+            <systemPath>${ignite.spark.jar}</systemPath>
+            <version>${ignite.version}</version>
+       </dependency>
+         <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <scope>system</scope>
+            <systemPath>${jfreechart-perfupdate.jar}</systemPath>
+                <version>0.1.0</version>
+       </dependency>
        <dependency>
             <groupId>com.databricks</groupId>
             <artifactId>spark-csv_${scala.version}</artifactId>
             <version>1.1.0</version>
         </dependency>
 
-       <dependency>
+        <dependency>
+              <groupId>javax.cache</groupId>
+              <artifactId>cache-api</artifactId>
+              <version>1.0.0</version>
+        </dependency>
+         <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
             <version>1.32</version>
@@ -97,11 +158,11 @@
             <version>1.0.21</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.jfree</groupId>
-            <artifactId>jfreechart</artifactId>
-            <version>1.0.17</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.jfree</groupId>-->
+            <!--<artifactId>jfreechart</artifactId>-->
+            <!--<version>1.0.17</version>-->
+        <!--</dependency>-->
 
          <dependency>
             <groupId>org.yaml</groupId>
@@ -117,7 +178,7 @@
         <dependency>
             <groupId>org.apache.ignite</groupId>
             <artifactId>ignite-spark</artifactId>
-            <version>${ignite.version}</version>
+            <version>${ignite.snapshot.version}</version>
         </dependency>
 
         <dependency>
@@ -147,27 +208,6 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-hive_${scala.version}</artifactId>
             <version>${spark.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.ignite</groupId>
-            <artifactId>ignite-indexing</artifactId>
-            <version>${ignite.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.ignite</groupId>
-            <artifactId>ignite-scalar</artifactId>
-            <version>${ignite.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.ignite</groupId>
-            <artifactId>ignite-spring</artifactId>
-            <version>${ignite.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.ignite</groupId>
-            <artifactId>ignite-log4j</artifactId>
-            <version>${ignite.version}</version>
         </dependency>
 
         <!-- Test dependencies -->
@@ -242,22 +282,6 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-install-plugin</artifactId>
           <executions>
-            <execution>
-              <id>install-external</id>
-              <phase>clean</phase>
-              <configuration>
-                <file>${ignite-yardstick.jar}</file>
-                <repositoryLayout>default</repositoryLayout>
-                <groupId>org.apache.ignite</groupId>
-                <artifactId>ignite-yardstick</artifactId>
-                <version>0.1.0</version>
-                <packaging>jar</packaging>
-                <generatePom>true</generatePom>
-              </configuration>
-              <goals>
-                <goal>install-file</goal>
-              </goals>
-            </execution>
           </executions>
         </plugin>
             <plugin>
@@ -293,21 +317,21 @@
                         <jvmArg>-Xmx1024m</jvmArg>
                     </jvmArgs>
                   <recompileMode>incremental</recompileMode>
-                  <args>
-                    <arg>-target:jvm-1.7</arg>
-                  </args>
+                  <!-- <args>
+                    <arg>-target:jvm-1.8</arg>
+                  </args> -->
                   <javacArgs>
-                    <javacArg>-source</javacArg><javacArg>1.7</javacArg>
-                    <javacArg>-target</javacArg><javacArg>1.7</javacArg>
+                    <javacArg>-source</javacArg><javacArg>1.8</javacArg>
+                    <javacArg>-target</javacArg><javacArg>1.8</javacArg>
                   </javacArgs>
               </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.2</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>

@@ -54,7 +54,7 @@ sshall "mkdir -p $IGNITE_HOME"
 ln -s $YARD_SPARK/config/spark-aws-config.xml /mnt/ignite/config/spark-aws-config.xml 
 rsyncall $IGNITE_HOME
 
-cd /root
+ /root
 wget https://github.com/apache/spark/archive/v1.4.1.tar.gz
 tar -xvf v1.4.1.tar.gz
 wget http://downloads.typesafe.com/scala/2.11.2/scala-2.11.2.tgz

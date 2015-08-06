@@ -170,7 +170,7 @@ class CoreBattery(sc: SparkContext, testName: String, outputDir: String,
 
   def runAggregationTests(name: String, rdd: AggRDD, actions: Seq[Action]): Seq[TestResult] = {
     val results = for (action <- actions) yield {
-      val tname = s"$name/$action"
+      val tname = s"$name $action"
       var tres: TestResult = null
       TimedResult(tname){
         val result = action match {
@@ -189,7 +189,7 @@ class CoreBattery(sc: SparkContext, testName: String, outputDir: String,
 
   def runCountTests(name: String, rdd: CountRDD, actions: Seq[Action]): Seq[TestResult] = {
     val results = for (action <- actions) yield {
-      val tname = s"$name/$action"
+      val tname = s"$name $action"
 //      trace(tname, s"Starting xform test $tname")
       var tres: TestResult = null
       TimedResult(tname) {
