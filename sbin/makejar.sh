@@ -16,13 +16,19 @@ JARS=$(echo "./libs/yardstick-spark-0.0.1.jar
 ./repo-spark/ignite-spark-1.4.1-SNAPSHOT.jar
 ./repo1/jfreechart2-2.0-pre1-perfupdate-sources.jar
 ./repo1/jfreechart2-2.0-pre1-perfupdate.jar
+./libs/aws-java-sdk-1.3.21.1.jar
 " | tr '\n' ' ')
 for jar in $JARS; do cp $jar $jdir; done
-
+for jar in libs/*; do echo $jar; cp $jar $jdir; done
 cd $jdir
-for x in *.jar; do jar -xvf $x; done 
+for x in *.jar; do jar -xvf $x; done
 rm *.jar
+cd META-INF
+rm -rf *.SF
+rm -rf *.DSA
+rm -rf *.RSA
+rm -rf ECLIPSE*
+rm -rf license/*
+cd ..
 jar -cvf $curdir/target/yardstick-spark-uber-0.0.1.jar .
 cd $curdir
-
-
