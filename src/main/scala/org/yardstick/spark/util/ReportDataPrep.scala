@@ -24,7 +24,7 @@ import org.jfree.chart.axis.{AxisLocation, LogAxis, NumberAxis}
 import org.jfree.chart.plot._
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer
 import org.jfree.chart.{ChartPanel, ChartUtilities, JFreeChart}
-import org.jfree.data.xy.XYSeriesCollection
+import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
 
 import scala.collection.SortedMap
 
@@ -112,7 +112,6 @@ object ReportDataPrep {
     if (seriesMap.size > maxSeries) {
       throw new IllegalArgumentException(s"Can not fit > $maxSeries series in a single chart")
     }
-    import scalax.chart.api._
     val scoll = new XYSeriesCollection
     for ((sname, serval) <- seriesMap) {
       val cseries = new XYSeries(sname)

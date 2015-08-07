@@ -1,7 +1,6 @@
-export SPARK_HOME=/mnt/spark-1.4.1     
 cat <<-"EOF" > ~/.bash_profile
 export JAVA_HOME=/usr/lib/jvm/java-1.7.0
-export SCALA_HOME=/root/scala-2.11.2
+export SCALA_HOME=/mnt/scala-2.11.2
 export PATH=$SCALA_HOME/bin:$PATH
 export SPARK_HOME=/mnt/spark-1.4.1
 export PATH=.:"$SPARK_HOME/bin:$SPARK_HOME/sbin:$PATH"
@@ -29,7 +28,7 @@ rsyncall() { dest=${2:-"$1"}; for h in $SL; do echo $h; rsync -auv $1 $h:$dest ;
 alias b='vi $LOGON_SCRIPT; source $LOGON_SCRIPT'
 slave1() { echo "$SL" | cut -d' ' -f1 ; }
 sparkpi() { spark-submit --master $MASTER --class org.apache.spark.examples.SparkPi $SPARK_HOME/examples/target/scala-2.11/*example*.jar ; }
-zinc() { /root/zinc-0.3.7/bin/zinc -scala-home /root/scala-2.11.2 -nailed -start ; }
+zinc() { /mnt/zinc-0.3.7/bin/zinc -scala-home /mnt/scala-2.11.2 -nailed -start ; }
 export MASTER="spark://$(hostname):7077"
 export EXTERNALIP="spark://$(curl -s http://169.254.169.254/latest/meta-data/public-hostname):7077"
 echo "MASTER IS $MASTER"
@@ -39,7 +38,7 @@ sed -i $LOGON_SCRIPT -e "s/\$LOGON_SCRIPT/$LOGON_SCRIPT/g"
 chmod +x $LOGON_SCRIPT
 source $LOGON_SCRIPT
 source ~/.bash_profile
-cd /root
+cd /mnt
 sudo wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
 sudo sed -i s/\$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo
 sudo yum install -y apache-maven
@@ -54,7 +53,7 @@ echo "export IGNITE_HOME=/mnt/ignite" >> ~/.bash_profile
 export IGNITE_HOME=/mnt/ignite
 sshall "mkdir -p $IGNITE_HOME"
 ln -s $YARD_SPARK/config/spark-aws-config.xml /mnt/ignite/config/spark-aws-config.xml 
-rsyncall $IGNITE_HOME
+rsyncall $IGNITE_HOME/
 
 cd /mnt
 wget https://github.com/apache/spark/archive/v1.4.1.tar.gz
@@ -70,8 +69,6 @@ cd $SPARK_HOME
 dev/change-version-to-2.11.sh
 sed -i pom.xml -e "s/2\.10\.4/2\.11\.2/g"
 mvn -Pyarn -Phive -Phadoop-2.4 -Dscala-2.11 -DskipTests -Dmaven.javadoc.skip=true clean package
-$SPARK_HOME/sbin/stop-all.sh
-$SPARK_HOME/sbin/start-all.sh
 
 cd /root 
 git clone https://github.com/ThirdEyeCSS/yardstick-spark
@@ -79,9 +76,10 @@ cd /root/yardstick-spark/
 git checkout coresql
 git fetch origin coresql
 git rebase origin/coresql
-mvn clean package
+mvn -DskipTests=true -Dmaven.javadoc.skip=true clean package
+mvn -DskipTests=true -Dmaven.javadoc.skip=true assembly:single 
 sbin/makejar.sh
-rsyncall /root/yardstick-spark
+rsyncall /root/yardstick-spark/
 
 cd /root
 wget http://downloads.sourceforge.net/project/s3tools/s3cmd/1.5.0-rc1/s3cmd-1.5.0-rc1.tar.gz
@@ -92,11 +90,15 @@ s3cmd --configure
 s3cmd --version
 export PATH=$PATH:$(pwd)
 
-rsyncall /root/scala-2.11.2 
+rsyncall /mnt/scala-2.11.2/
 sshall "mkdir $SPARK_HOME"
-rsyncall $SPARK_HOME
+rsyncall $SPARK_HOME/
 rsyncall ~/.bash_profile
 rsyncall $LOGON_SCRIPT 
+$SPARK_HOME/sbin/stop-all.sh
+$SPARK_HOME/sbin/start-all.sh
+
 # spark-submit --master $MASTER --class org.yardstickframework.spark.SparkCoreRDDBenchmark ./target/yardstick-spark-uber-0.0.1.jar -CORE_CONFIG_FILE=$YARDSTICK_HOME/config/coreTests.yml -cfg file:///mnt/ignite/config/spark-aws-config.xml -nn 0 -v -b 1 -w 60 -d 10 -t 1  -sm PRIMARY_SYNC -dn SparkCoreRDDBenchmark -cn core -sn SparkNode
 
+# spark-submit  --conf spark.akka.frameSize=128 --conf spark.executor.memory=11G --conf spark.driver.memory=11G --conf spark.shuffle.memoryFraction=0.8 --conf spark.storage.memoryFraction=0.8 --master $MASTER --class org.yardstick.spark.SparkCoreRDDBenchmark ./target/yardstick-spark-uber-0.0.1.jar -CORE_CONFIG_FILE=$YARDSTICK_HOME/config/coreTests.yml -cfg file:///mnt/ignite/config/spark-aws-config.xml -nn 0 -v -b 1 -w 60 -d 10 -t 1  -sm PRIMARY_SYNC -dn SparkCoreRDDBenchmark -cn core -sn SparkNode
 

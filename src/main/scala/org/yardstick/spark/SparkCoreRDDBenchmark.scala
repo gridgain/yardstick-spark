@@ -92,7 +92,8 @@ class SparkCoreRDDBenchmark extends SparkAbstractBenchmark[RddKey, RddVal](CORE_
   }
 
   def depthTests(): Boolean = {
-    val testConfig = readTestConfig(coreTestsFile)
+    val testConfig = readTestConfig(cfg.customProperties
+      .getOrDefault("CORE_CONFIG_FILE",coreTestsFile))
     val (pass, tresults) = CoreTestMatrix.runMatrix(sc, testConfig, cacheName)
     pass
   }
