@@ -20,6 +20,7 @@ JARS=$(echo "./libs/yardstick-spark-0.0.1.jar
 " | tr '\n' ' ')
 for jar in $JARS; do cp $jar $jdir; done
 for jar in libs/*; do echo $jar; cp $jar $jdir; done
+for jar in install_libs/*; do echo $jar; cp $jar $jdir; done
 cd $jdir
 for x in *.jar; do jar -xvf $x; done
 rm *.jar
