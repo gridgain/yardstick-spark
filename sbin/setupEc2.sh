@@ -44,16 +44,16 @@ sudo sed -i s/\$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo
 sudo yum install -y apache-maven
 mvn --version
 cd /mnt
-wget http://mirrors.ibiblio.org/apache//incubator/ignite/1.3.0/apache-ignite-1.3.0-incubating-src.zip
-unzip  apache-ignite-1.3.0-incubating-src.zip
-ln -s /mnt/apache-ignite-1.3.0-incubating-src /mnt/ignite
-cd /mnt/ignite
-mvn clean package -DskipTests -Dmaven.javadoc.skip=true -Prelease,lgpl
-echo "export IGNITE_HOME=/mnt/ignite" >> ~/.bash_profile
-export IGNITE_HOME=/mnt/ignite
-sshall "mkdir -p $IGNITE_HOME"
+#wget http://mirrors.ibiblio.org/apache//incubator/ignite/1.3.0/apache-ignite-1.3.0-incubating-src.zip
+#unzip  apache-ignite-1.3.0-incubating-src.zip
+#ln -s /mnt/apache-ignite-1.3.0-incubating-src /mnt/ignite
+#cd /mnt/ignite
+#mvn clean package -DskipTests -Dmaven.javadoc.skip=true -Prelease,lgpl
+#echo "export IGNITE_HOME=/mnt/ignite" >> ~/.bash_profile
+#export IGNITE_HOME=/mnt/ignite
+#sshall "mkdir -p $IGNITE_HOME"
 ln -s $YARD_SPARK/config/spark-aws-config.xml /mnt/ignite/config/spark-aws-config.xml 
-rsyncall $IGNITE_HOME/
+#rsyncall $IGNITE_HOME/
 
 cd /mnt
 wget https://github.com/apache/spark/archive/v1.4.1.tar.gz
