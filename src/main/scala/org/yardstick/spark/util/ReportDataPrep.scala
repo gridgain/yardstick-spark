@@ -28,6 +28,7 @@ import javafx.scene.layout.{BorderPane, GridPane}
 import javafx.stage.Stage
 
 import scala.collection.SortedMap
+import javafx.scene.control.Label
 
 /**
  * ReportDataPrep
@@ -35,8 +36,7 @@ import scala.collection.SortedMap
  */
 object ReportDataPrep {
 
-  //  val Title = "IgniteRDD Runtime Performance Compared with Native Spark RDD|Three Workers AWS c3.2xlarge Cluster"
-  val Title = "IgniteRDD Runtime Performance Compared with Native Spark RDD|Three Workers AWS c3.2xlarge Cluster"
+  val Title = "IgniteRDD Runtime Performance Compared with Native Spark RDD Three Workers AWS c3.2xlarge Cluster"
   val useLogAxis = true
 
   import collection.mutable
@@ -48,8 +48,6 @@ object ReportDataPrep {
   }
 
   type SeriesValSeq = Seq[SeriesEntry]
-
-  //  case class SeriesMap(smap: Map[String, SeriesValSeq])
 
   type SeriesInst = mutable.HashMap[String, SeriesValSeq]
 
@@ -70,7 +68,6 @@ object ReportDataPrep {
 
   object LLine {
     def apply(line: String) = {
-      // testing
       //      val line = "<09:18:00><yardstick> Completed 0730-091340/CoreSmoke 10000000recs 100parts 1skew native AggregateByKey/Count - duration=14895 millis count=993127"
       //      pr(line)
       val regex = """.*Completed (?<tstamp>[\d]{4}-[\d]{6})/(?<tname>[\w]+) (?<nrecs>[\d]+)[\w]+ (?<nparts>[\d]+)[\w]+ (?<nskew>[\d]+)[\w]+ (?<native>[\w]+) (?<xform>[\w]+)[ /](?<action>[\w]+) - duration=(?<duration>[\d]+) millis count=(?<count>[\d]+).*""".r
@@ -265,7 +262,6 @@ object ReportDataPrep {
   }
 
   def display(serGroupName: String, serMap: SortedMap[String, SeriesTup]) = {
-    //      saveUsingJavaFx(serGroupName, serMap)
     saveUsingJavaFx()
   }
 
@@ -273,7 +269,6 @@ object ReportDataPrep {
 
     def getData(): MapSeriesMap = {
       val path = "/shared/results/0730-091340"
-      //    val lines = grabData(args(0))
       val lines = grabData(path)
 
       val overSeriesMap = ReportDataPrep.formatData(lines)
@@ -291,7 +286,6 @@ object ReportDataPrep {
     val DefaultDisplayH = ScreenHeight - 100
     val MinChartH = 400
     val Gap = 10
-    //    tpane.setPrefColumns(3)
     val MaxCols = 3
     val nCharts = seriesMap.size
     val nCols = math.min(MaxCols, nCharts)
@@ -299,18 +293,6 @@ object ReportDataPrep {
     val DisplayH = if (nRows <= 3) DefaultDisplayH else (MinChartH + 10) * nRows
     val displaySize = (DisplayW /* / nCols */ , DisplayH, nRows)
     val singleDisplaySize = (SingleScreenWidth  , SingleScreenHeight, nRows)
-
-    def axisCss() = {
-      val axis = """
-      .axis {
-        -fx-font-size: 6px;
-        -fx-tick-label-fill: #914800;
-        -fx-font-family: Tahoma;
-        -fx-tick-length: 20;
-        -fx-minor-tick-length: 10;
-                 """.stripMargin
-      axis
-    }
 
     override def start(mainStage: Stage): Unit = {
       mainStage.setTitle(Title)
@@ -324,43 +306,22 @@ object ReportDataPrep {
         }
         val (xAxis, yAxis) = (new LogAxis(math.max(1, mm._1), mm._2),
           new LogAxis(math.max(1, mm._3), mm._4))
-        //          (new NumberAxis(math.max(1, mm._1), mm._2, mm._4 / 20),
-        //            new NumberAxis(math.max(1, mm._3), mm._4, mm._4 / 20))
 
         xAxis.setTickLabelRotation(20)
-        //        xAxis.setStyle("-fx-tick-label-font-size:0.5em;")
-        //        xAxis.setStyle("-fx-axis-font-size:0.5em;")
-        //        xAxis.getStyleClass.add(""".axis {
-        //                -fx-tick-label-font-size: 1.2em;
-        //                -fx-tick-label-fill: -fx-text-background-color;
-        //            }
-        //          """.stripMargin)
-
         xAxis.setLabel("Number of Records (Thousands)")
         yAxis.setLabel("Elapsed Time (msecs) (Lower is Better)")
-        val lineChart = new LineChart[JDouble, JDouble](xAxis, yAxis)
-        //        lineChart.setTitle(s"Ignite-on-Spark Performance - $chartTitle")
-        lineChart.setTitle(s"$chartTitle")
-        //        lineChart.getStyleClass.add(s"""chart-title {
-        //                -fx-font-size: 1.0em;
-        //            }""".stripMargin);
-        //        lineChart.setStyle(".default-color0.chart-series-line { -fx-stroke: #e9967a; }");
+        val chart = new LineChart[JDouble, JDouble](xAxis, yAxis)
+        chart.setTitle(s"Ignite-on-Spark Performance - $chartTitle")
+        chart.setTitle(s"$chartTitle")
+        val l = chart.lookup(".chart-title").asInstanceOf[Label]
+        l.setWrapText(true);
 
         for ((sname, (series, mm)) <- seriesMap) {
-          lineChart.getData().add(series.asInstanceOf[Series[JDouble, JDouble]])
-          //          series.nodeProperty.get.setStyle("-fx-stroke-width: 2px;")
-          //          lineChart.getData().add(series)
+          chart.getData().add(series.asInstanceOf[Series[JDouble, JDouble]])
         }
-        //        lineChart.setStyle("-fx-chart-title-font-size:1.0em;")
-        lineChart
+        chart
       }
       var firstStage: Stage = null
-      // TODO: uncomment the hardcoded single scene
-      //      val cssProp = new SimpleStringProperty(axisCss())
-      //      val updater = new FXCSSUpdater(scene)
-      //      updater.bindCss(cssProp)
-      //      ipdater.applyCssToParent(((Parent)popover.getSkin().getNode()));
-
       val tpane = new GridPane
       tpane.setHgap(10)
       tpane.setVgap(10)
@@ -372,7 +333,6 @@ object ReportDataPrep {
           val scene = new Scene(tpane, displaySize._1, displaySize._2)
           scene.getStylesheets.add("/org/yardstick/spark/util/ys-charts.css")
           mainStage.setScene(scene)
-          //          tpane.getChildren.add(ix, lineChart)
           mainStage.show()
         }
         javafx.application.Platform.runLater(new Runnable() {
@@ -392,7 +352,7 @@ object ReportDataPrep {
             val scene = new Scene(borderPane, singleDisplaySize._1, singleDisplaySize._2)
             stage.setScene(scene)
             scene.getStylesheets.add("/org/yardstick/spark/util/ys-charts.css")
-            stage.show();
+            stage.show()
           }
         })
       }
@@ -400,62 +360,16 @@ object ReportDataPrep {
     }
   }
 
-    //  def saveUsingJavaFx(sname: String, seriesMap: SortedMap[String,SeriesTup]): Unit = {
     def saveUsingJavaFx(): Unit = {
 
       Platform.setImplicitExit(false);
       pr("Saving with JavaFX")
-      //    val blob = seriesMap.writeObject
       Application.launch(classOf[MyApp], null.asInstanceOf[String])
       pr("launched")
-
-    }
-
-    def testFx() {
-      class MyApp extends Application {
-        override def start(stage: Stage): Unit = {
-
-          stage.setTitle("Line Chart Sample")
-          //defining a series
-          val series = new XYChart.Series[JDouble, JDouble]()
-          series.setName("My portfolio")
-          //populating the series with data
-          //        series.getData().addAll(new Array(new XYChart.Data[Double,Double](1, 23)))
-          val data = Array.tabulate[XYChart.Data[JDouble, JDouble]](10) { x =>
-            new XYChart.Data[JDouble, JDouble](x.toDouble, x.toDouble + x * x + x * x * x)
-          }
-
-          import collection.JavaConverters._
-          series.setData(FXCollections.observableList(data.toList.asJava))
-
-          //defining the axes
-          val mm = FxDataUtils.minMax(data)
-          val xAxis = new LogAxis(Math.max(1, mm._1), mm._2)
-          val yAxis = new LogAxis(Math.max(1, mm._3), mm._4)
-
-          xAxis.setLabel("Number of Month")
-          val lineChart = new LineChart(xAxis, yAxis)
-
-          lineChart.setTitle("Stock Monitoring, 2010")
-          val scene = new Scene(lineChart, 800, 600)
-          lineChart.getData().add(series)
-
-          stage.setScene(scene)
-          stage.show()
-        }
-
-        val c = new MyApp
-        Application.launch(classOf[MyApp], null.asInstanceOf[String])
-      }
     }
 
   def main(args: Array[String]) {
-    //    dumpLines(lines)
-
     saveUsingJavaFx
-    //    for ( (serGroupName, serSeq) <- seriesMap) {
-    //      display(serGroupName, serSeq)
-    //    }
   }
 
 }
