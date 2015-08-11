@@ -27,7 +27,7 @@ sshall() { for h in $SL; do echo $h; ssh $h "$1"; done ; }
 rsyncall() { dest=${2:-"$1"}; for h in $SL; do echo $h; rsync -auv $1 $h:$dest ; done ; }
 alias b='vi $LOGON_SCRIPT; source $LOGON_SCRIPT'
 slave1() { echo "$SL" | cut -d' ' -f1 ; }
-sparkpi() { spark-submit --master $MASTER --class org.apache.spark.examples.SparkPi $SPARK_HOME/examples/target/scala-2.11/*example*.jar ; }
+sparkpi() { spark-submit --master $EXTERNALIP --class org.apache.spark.examples.SparkPi $SPARK_HOME/examples/target/scala-2.11/*example*.jar ; }
 zinc() { /mnt/zinc-0.3.7/bin/zinc -scala-home /mnt/scala-2.11.2 -nailed -start ; }
 export MASTER="spark://$(hostname):7077"
 export EXTERNALIP="spark://$(curl -s http://169.254.169.254/latest/meta-data/public-hostname):7077"
@@ -90,6 +90,7 @@ s3cmd --configure
 s3cmd --version
 export PATH=$PATH:$(pwd)
 
+sshall "mkdir $SCALA_HOME"
 rsyncall /mnt/scala-2.11.2/
 sshall "mkdir $SPARK_HOME"
 rsyncall $SPARK_HOME/

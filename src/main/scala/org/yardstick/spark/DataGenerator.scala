@@ -129,8 +129,10 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
 //          () ⇒ new IgniteConfiguration().setIgniteHome(igHome))
 //          () ⇒ new IgniteConfiguration())
 //      ic.ignite.configuration.setIgniteHome(igHome)
+      val cconf = new TestCacheConfiguration[Long, String]().cacheConfiguration(cacheName)
+      println(s"Set igniteRDD Cache RebalanceMode=${cconf.getRebalanceMode}")
       val cache: IgniteRDD[Long, String] = ic.
-        fromCache(new TestCacheConfiguration[Long, String]().cacheConfiguration(cacheName))
+        fromCache(cconf)
 
       val localData = sc.parallelize({
         val dataStruct = dataToBc // bcData.value
