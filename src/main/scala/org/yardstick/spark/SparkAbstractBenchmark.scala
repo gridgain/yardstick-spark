@@ -14,7 +14,7 @@
 
 package org.yardstick.spark
 
-import org.apache.ignite.cache.CacheMode
+import org.apache.ignite.cache.{CacheRebalanceMode, CacheMode}
 import org.apache.ignite.cache.query.annotations.{QuerySqlField, QueryTextField}
 import org.apache.ignite.configuration.{CacheConfiguration, IgniteConfiguration}
 import org.apache.ignite.scalar.scalar._
@@ -35,16 +35,15 @@ abstract class SparkAbstractBenchmark[RddK,RddV](val cacheName: String)
 
   var sc: SparkContext = _
   var sqlContext: SQLContext = _
+  var cmdlineArgs: Array[String] = _
 
   type ScalarCacheQuerySqlField = QuerySqlField@field
   type ScalarCacheQueryTextField = QueryTextField@field
 
-//  val PARTITIONED_CACHE_NAME = "partitioned"
-
 
   @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration) {
-//    super.setUp(cfg)
+    BenchmarkUtils.jcommander(cfg.commandLineArguments(), this.args, "<ignite-driver>");
     val args = cfg.commandLineArguments
     val testName = "SparkBenchmark"  // TODO: specify Core or SQL
     val sconf = new SparkConf()
@@ -56,27 +55,7 @@ abstract class SparkAbstractBenchmark[RddK,RddV](val cacheName: String)
     } else if (System.getenv().containsKey("MASTER")) {
       System.getenv("MASTER")
     } else {
-//      var emaster= System.getenv("MASTER")
-      //     Hack to get master
-      //     Line is in /root/spark/conf/spark-env.sh:
-      //     export SPARK_MASTER_IP=ec2-184-72-155-207.compute-1.amazonaws.com
-      val sfile = "/root/spark/conf/spark-env.sh"
-      val smaster = if (new java.io.File(sfile).exists) {
-        val ipLine = scala.io.Source.fromFile(sfile).getLines.toList
-          .filter(l => !l.startsWith("#") && l.contains("SPARK_MASTER_IP"))
-        val ip = ipLine.head.substring(ipLine.head.lastIndexOf("=") + 1)
-        val portLine = scala.io.Source.fromFile(sfile).getLines.toList
-          .filter(l => !l.startsWith("#") && l.contains("SPARK_MASTER_PORT"))
-        val port = if (!portLine.isEmpty) {
-          portLine.head.substring(portLine.head.lastIndexOf("=") + 1)
-        } else {
-          "7077"
-        }
-        s"spark://$ip:$port"
-      } else {
-        s"local[${Runtime.getRuntime.availableProcessors}]"
-      }
-      smaster
+      "local[*]"
     }
     sconf.setMaster(master)
     val msg = s"*** MASTER is $master ****"
@@ -87,6 +66,17 @@ abstract class SparkAbstractBenchmark[RddK,RddV](val cacheName: String)
     sc.setLocalProperty("spark.akka.askTimeout","180")
     sc.setLocalProperty("spark.driver.maxResultSize","2GB")
     sqlContext = new SQLContext(sc)
+  }
+
+  def getArg(name: String, default: String) = cmdlineArgs.contains(name)
+
+  def getArgPair(name: String, default: String) = {
+    val ix = cmdlineArgs.indexOf(name)
+    if (ix >= 0) {
+      cmdlineArgs(ix + 1)
+    } else {
+      default
+    }
   }
 
   @throws(classOf[Exception])
@@ -118,6 +108,7 @@ class TestCacheConfiguration[RddK,RddV] {
     ccfg.setBackups(1)
     ccfg.setName(gridName)
     ccfg.setCacheMode(CacheMode.PARTITIONED)
+    ccfg.setRebalanceMode(CacheRebalanceMode.SYNC)
     // Indexing is only useful for SQL operations
     if (false) {
       // TODO(enable if in SQL tests
@@ -126,4 +117,5 @@ class TestCacheConfiguration[RddK,RddV] {
     }
     ccfg
   }
+
 }

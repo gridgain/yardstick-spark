@@ -16,27 +16,32 @@
  */
 package org.yardstick.spark.util
 
+import java.awt.Transparency
+import java.awt.image.BufferedImage
 import java.io.File
 import java.lang.{Double => JDouble}
 import java.util.Date
+import java.util.concurrent.CountDownLatch
+import javafx.animation.PauseTransition
 import javafx.application.{Application, Platform}
-import javafx.concurrent.Task
 import javafx.embed.swing.SwingFXUtils
+import javafx.event.{ActionEvent, EventHandler}
 import javafx.geometry.Insets
-import javafx.scene.Scene
 import javafx.scene.chart.LineChart
 import javafx.scene.chart.XYChart._
 import javafx.scene.control.Label
+import javafx.scene.image.{Image, WritableImage}
 import javafx.scene.layout.{BorderPane, GridPane}
+import javafx.scene.paint.Color
+import javafx.scene.{Node, Scene, SnapshotParameters}
 import javafx.stage.Stage
+import javafx.util.Duration
 import javax.imageio.ImageIO
+
 import org.yardstick.spark.util.ReportsDataPrep.FxDataUtils.Coords
-
-import collection.JavaConverters._
-
 import org.yardstick.spark.util.ReportsDataPrep.{MapSeriesMap, _}
 
-import scalafx.scene
+import scala.collection.JavaConverters._
 
 /**
  * ChartingApp
@@ -54,13 +59,13 @@ import scalafx.scene
  * Data processing via grabData and formatData
  * Charting: via the ChartingApp JavaFx application
  */
-object ChartingApp {
+object ChartingAppExperimental {
 
 
   val Title = "IgniteRDD Runtime Performance Compared with Native Spark RDD Three Workers AWS c3.2xlarge Cluster"
   val useLogAxis = true
 
-  class ChartingApp extends Application {
+  class ChartingAppExperimental extends Application {
 
     val YardstickCss = "/org/yardstick/spark/util/ys-charts.css"
     var dataPath: String = _
@@ -127,14 +132,17 @@ object ChartingApp {
       }
       var firstStage: Stage = null
       val tpane = new GridPane
+      val tpane2 = new GridPane
       tpane.setHgap(10)
       tpane.setVgap(10)
       tpane.setPadding(new Insets(0, 0, 0, 10))
       var mainScene: Scene = null
+      var mainScene2: Scene = null
+      var mainStage2: Stage = null
       for ((ix, (sname, series)) <- (0 until seriesMap.size).zip(seriesMap)) {
-        val lineChart = createChart(ix, sname, series)
+        val chart = createChart(ix, sname, series)
         if (ix == 0) {
-          tpane.add(lineChart, math.floor(ix / MaxCols).toInt, ix % MaxCols)
+          tpane.add(chart, math.floor(ix / MaxCols).toInt, ix % MaxCols)
           mainScene = new Scene(tpane, displaySize._1, displaySize._2)
           mainScene.getStylesheets.add(YardstickCss)
           mainStage.setScene(mainScene)
@@ -143,78 +151,147 @@ object ChartingApp {
         javafx.application.Platform.runLater(new Runnable() {
           override def run() = {
             if (ix > 0) {
-              tpane.add(lineChart, math.floor(ix / MaxCols).toInt, ix % MaxCols)
+              tpane.add(chart, math.floor(ix / MaxCols).toInt, ix % MaxCols)
             }
-            if (ix == seriesMap.size - 1) {
+//            if (ix == seriesMap.size - 1) {
+//              val fname = s"$reportsPath/summaryChart.jpg"
+//              imageTasksPool.submit(mainScene, chart, tpane, fname)
+//
+//            }
+          }
+        })
+      }
+      for ((ix, (sname, series)) <- (0 until seriesMap.size).zip(seriesMap)) {
+        val chart = createChart(ix, sname, series)
+//        if (ix == 0) {
+//          tpane2.add(chart, math.floor(ix / MaxCols).toInt, ix % MaxCols)
+//          mainScene2 = new Scene(tpane, displaySize._1, displaySize._2)
+//          mainScene2.getStylesheets.add(YardstickCss)
+//          mainStage2.setScene(mainScene2)
+//          mainStage2.show()
+//        }
+        javafx.application.Platform.runLater(new Runnable() {
+          val ix2 = ix
+          override def run() = {
+            if (ix2 > 0) {
+              tpane2.add(chart, math.floor(ix2 / MaxCols).toInt, ix2 % MaxCols)
+            }
+            if (ix2 == seriesMap.size - 1) {
               val fname = s"$reportsPath/summaryChart.jpg"
-              imageTasksPool.submit(mainScene, fname)
+              imageTasksPool.submit(mainScene2, chart, tpane2, fname)
 
             }
           }
         })
       }
       for ((ix, (sname, series)) <- (0 until seriesMap2.size).zip(seriesMap2)) {
-        val lineChart = createChart(ix, sname, series)
+        val chart = createChart(ix, sname, series)
+        val chart2 = createChart(ix, sname, series)
         javafx.application.Platform.runLater(new Runnable() {
           override def run() = {
             val stage = new Stage
-            val borderPane = new BorderPane(lineChart)
+            val borderPane = new BorderPane(chart)
             val scene = new Scene(borderPane, singleDisplaySize._1, singleDisplaySize._2)
             stage.setScene(scene)
             scene.getStylesheets.add(YardstickCss)
             stage.show()
-            val fname = s"$reportsPath/${sname.replace(" ", "_").replace("/", "-")}.jpg"
-//            val imageRunner = new SceneSnapshotRunner(scene, fname).start()
-            imageTasksPool.submit(scene, fname)
+            val borderPane2 = new BorderPane(chart2)
+            val fname = s"$reportsPath/${sname.replace(" ", "_").replace("/", "-").replace(":", "-")}.jpg"
+            imageTasksPool.submit(scene, chart2, borderPane2, fname)
           }
         })
       }
 
     }
-
-    val imageTasksPool = FxOfflineThreadPool[Boolean]("ImagesPool") {
-//      (scene, fileName) => {
-      (scene: Scene, fileName: String) => {
-        Thread.sleep(50)
+    val imageTasksPool = FxOfflineThreadPoolExperimental[Boolean]("ImagesPool") {
+      (scene, chart, pane, fileName) => {
+        Thread.sleep(5000)
+        val latch = new CountDownLatch(1)
         javafx.application.Platform.runLater(new Runnable() {
           override def run() = {
+            val snaScene = new Scene(pane)
+//            val snaScene = new Scene(chart.getParent)
             val fname = s"$reportsPath/summaryChart.jpg"
-            val snapShot = scene.snapshot(null)
-            pr(s"${new Date().toString} Saving image to ${fileName}")
-            if (!ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null),
-              "jpg", new File(fileName))) {
-              throw new IllegalArgumentException(s"Failed to write image $fileName")
-            }
+
+            val p = new SnapshotParameters()
+            p.setFill(Color.WHITE)
+//            val snapShot = scene.snapshot(null)
+//            val snapShot = chart.snapshot(p,null)
+//            pane.snapshot(
+//            new Callback[SnapshotResult, Void]() {
+//              override def call(result: SnapshotResult): Void = {
+                pr(s"${new Date().toString} Saving image to ${fileName}")
+//                saveSnapshot(chart, fileName)
+
+                val pt = new PauseTransition(Duration.seconds(5));
+                pt.setOnFinished(new EventHandler[ActionEvent]() {
+                  override def handle(event: ActionEvent): Unit = {
+                    saveSnapshot(chart, fileName);
+                  }
+                })
+                pt.play();
+
+//                if (!ImageIO.write(SwingFXUtils.fromFXImage(result.getImage, null),
+//                  "jpg", new File(fileName))) {
+//                  throw new IllegalArgumentException(s"Failed to write image $fileName")
+//                }
+//                latch.countDown
+//                null
+//              }
+//            },p,null)
           }
         })
+        println("Waiting for latch ..")
+        latch.await
+        println("Latch completed ..")
         true
       }
     }
   }
 
-//  class SceneSnapshotRunner(scene: Scene, fileName: String) extends Task {
-//    def start() = {
-//      javafx.application.Platform.runLater(this)
-//      this
-//    }
-//
-//    override def call(): Boolean = {
-//      Thread.sleep(2500)
-//      val snapShot = scene.snapshot(null)
-//      pr(s"${new Date().toString} Saving image to ${fileName}")
-//      if (!ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null),
-//        "jpg", new File(fileName))) {
-//        throw new IllegalArgumentException(s"Failed to write image $fileName")
-//      }
-//      true
-//    }
-//  }
-//
+  def createImage(node: Node): Image = {
+
+        var wi: WritableImage = null
+
+        val parameters = new SnapshotParameters();
+        parameters.setFill(Color.WHITE);
+
+        val imageWidth = node.getBoundsInLocal().getWidth();
+        val imageHeight = node.getBoundsInLocal().getHeight();
+
+        wi = new WritableImage(imageWidth.toInt, imageHeight.toInt);
+        node.snapshot(parameters, wi);
+
+        wi;
+    }
+
+    def saveSnapshot(node: Node, fileName: String) {
+
+        val image = createImage(node);
+
+        // save image !!! has bug because of transparency (use approach below) !!!
+        // ImageIO.write(SwingFXUtils.fromFXImage( selectedImage.getImage(), null), "jpg", file);
+
+        // save image (without alpha)
+        val bufImageARGB = SwingFXUtils.fromFXImage(image, null);
+        val bufImageRGB = new BufferedImage(bufImageARGB.getWidth(), bufImageARGB.getHeight(),
+          Transparency.OPAQUE);
+
+        val graphics = bufImageRGB.createGraphics();
+        graphics.drawImage(bufImageARGB, 0, 0, null);
+
+        ImageIO.write(bufImageRGB, "jpg", new File(fileName));
+
+        graphics.dispose();
+
+        System.out.println( "Image saved: " + fileName);
+
+    }
   def saveUsingJavaFx(args: Array[String]): Unit = {
 
     Platform.setImplicitExit(false)
     pr("Saving with JavaFX")
-    Application.launch(classOf[ChartingApp], args: _*)
+    Application.launch(classOf[ChartingAppExperimental], args: _*)
     pr("launched")
   }
 

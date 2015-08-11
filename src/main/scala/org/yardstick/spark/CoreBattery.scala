@@ -62,7 +62,7 @@ object CoreTestMatrix {
       10000L,
       A(true, false)
   )
-  def runMatrix(sc: SparkContext, testDims: CoreTestConfig, cacheName: String) = {
+  def runMatrix(sc: SparkContext, testDims: CoreTestConfig, /*igniteConfigFile: String, */ cacheName: String) = {
     val passArr = mutable.ArrayBuffer[Boolean]()
     val resArr = mutable.ArrayBuffer[TestResult]()
     val dtf = new SimpleDateFormat("MMdd-hhmmss").format(new Date)
@@ -80,7 +80,8 @@ object CoreTestMatrix {
       val mat = TestMatrixSpec("core-smoke", "1.0", GenDataParams(nRecs, nPartitions, Some(testDims.minVal),
         Some(testDims.maxVal), Some(skew)))
       println("HERE AGAIN !!!!!!!!!!")
-      val dgen = new SingleSkewDataGenerator(sc, mat.genDataParams, useIgnite, if (useIgnite) Some(cacheName) else None)
+      val dgen = new SingleSkewDataGenerator(sc, mat.genDataParams, useIgnite,
+        /* if (useIgnite) Some(igniteConfigFile) else None, */ if (useIgnite) Some(cacheName) else None)
       val rdd = dgen.genData()
       val battery = new CoreBattery(sc, name, dir, rdd)
       val (pass, tresults) = battery.runBattery()
