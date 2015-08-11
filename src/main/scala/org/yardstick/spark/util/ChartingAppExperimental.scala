@@ -190,12 +190,14 @@ object ChartingAppExperimental {
         javafx.application.Platform.runLater(new Runnable() {
           override def run() = {
             val stage = new Stage
-            val borderPane = new BorderPane(chart)
+            val borderPane = new BorderPane
+            borderPane.getChildren.add(chart)
             val scene = new Scene(borderPane, singleDisplaySize._1, singleDisplaySize._2)
             stage.setScene(scene)
             scene.getStylesheets.add(YardstickCss)
             stage.show()
-            val borderPane2 = new BorderPane(chart2)
+            val borderPane2 = new BorderPane
+            borderPane2.getChildren.add(chart2)
             val fname = s"$reportsPath/${sname.replace(" ", "_").replace("/", "-").replace(":", "-")}.jpg"
             imageTasksPool.submit(scene, chart2, borderPane2, fname)
           }

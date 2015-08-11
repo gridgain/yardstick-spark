@@ -67,6 +67,7 @@
         <ignite.spring.jar>${basedir}/repo-spring/ignite-spring-${ignite.version}.jar</ignite.spring.jar>
         <ignite-yardstick.jar>${basedir}/repo/ignite-yardstick-0.1.0.jar</ignite-yardstick.jar>
         <jfreechart-perfupdate.jar>${basedir}/repo1/jfreechart2-2.0-pre1-perfupdate.jar</jfreechart-perfupdate.jar>
+        <jfxrt.jar>${basedir}/repo-javafx/jfxrt.jar</jfxrt.jar>
     </properties>
 
     <repositories>
@@ -119,20 +120,25 @@
             <systemPath>${ignite.spark.jar}</systemPath>
             <version>${ignite.version}</version>
        </dependency>
-         <dependency>
+         <!-- <dependency>
             <groupId>org.jfree</groupId>
             <artifactId>jfreechart</artifactId>
             <scope>system</scope>
             <systemPath>${jfreechart-perfupdate.jar}</systemPath>
                 <version>0.1.0</version>
-       </dependency>
-        <!--<dependency>-->
-            <!--<groupId>com.oracle</groupId>-->
-            <!--<artifactId>javafx</artifactId>-->
-            <!--<version>2.2</version>-->
-            <!--<systemPath>${java.home}/lib/jfxrt.jar</systemPath>-->
-            <!--<scope>system</scope>-->
-        <!--</dependency>-->
+       </dependency> -->
+        <dependency>
+            <groupId>net.java.openjfx.backport</groupId>
+            <artifactId>openjfx-78-backport</artifactId>
+            <version>1.8.0-ea-b96.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>javafx</artifactId>
+            <version>2.2</version>
+            <systemPath>${jfxrt.jar}</systemPath>
+            <scope>system</scope>
+        </dependency>
             <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk</artifactId>

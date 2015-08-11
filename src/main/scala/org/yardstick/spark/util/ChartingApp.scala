@@ -36,8 +36,6 @@ import collection.JavaConverters._
 
 import org.yardstick.spark.util.ReportsDataPrep.{MapSeriesMap, _}
 
-import scalafx.scene
-
 /**
  * ChartingApp
  *
@@ -158,7 +156,8 @@ object ChartingApp {
         javafx.application.Platform.runLater(new Runnable() {
           override def run() = {
             val stage = new Stage
-            val borderPane = new BorderPane(lineChart)
+            val borderPane = new BorderPane
+            borderPane.getChildren.add(lineChart)
             val scene = new Scene(borderPane, singleDisplaySize._1, singleDisplaySize._2)
             stage.setScene(scene)
             scene.getStylesheets.add(YardstickCss)
