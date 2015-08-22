@@ -1,10 +1,7 @@
 package org.yardstick.spark.util
 
-import java.util.Date
 import java.util.concurrent._
 import javafx.scene.Scene
-import javafx.scene.chart.Chart
-import javafx.scene.layout.Pane
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,9 +20,8 @@ import javafx.scene.layout.Pane
  * limitations under the License.
  */
 
-import scala.reflect.runtime.universe._
-
-class FxOfflineThreadPoolExperimental[T: TypeTag](threadGroupName: String)(block: (Scene, Chart, Pane, String) => T)  {
+import reflect.runtime.universe._
+class FxOfflineThreadPool[T: TypeTag](threadGroupName: String)(block: (Scene, String) => T)  {
 
   import reflect.runtime.universe._
   class CallableToRunnable[T: TypeTag](c: Callable[T]) extends Runnable with Callable[T] {
@@ -45,31 +41,26 @@ class FxOfflineThreadPoolExperimental[T: TypeTag](threadGroupName: String)(block
     }
   }
   val pool =  Executors.newSingleThreadExecutor(factory)
-  def submit(scene: Scene, chart: Chart, pane: Pane, fileName: String): Future[T] = {
-    println(s"${new Date().toString} - submitting task")
-    val ret = submit(new Callable[T]() {
-      override def call(): T = block(scene, chart, pane, fileName)
-    })
-    println(s"${new Date().toString} - completed block")
-    ret
+  def submit(scene: Scene, fileName: String): T = {
+    block(scene, fileName)
   }
-  import collection.mutable
-  val futures = new mutable.ArrayBuffer[Future[T]]()
-  def submit(task: Callable[T]): Future[T] = {
+  def submit(task: Callable[T]): T = {
     val r = new CallableToRunnable(task)
     val future = pool.submit(r.asInstanceOf[Callable[T]]).asInstanceOf[Future[T]]
-    futures += future
-    future
+    val res = future.get
+    res
   }
 }
-
 /**
  * FxOfflineThreadpool
  *
  */
-object FxOfflineThreadPoolExperimental {
+object FxOfflineThreadPool {
 
-  def apply[T: TypeTag](name: String)(block: (Scene, Chart, Pane, String) => T) =
-      new FxOfflineThreadPoolExperimental[T](name)(block)
+  def apply[T: TypeTag](name: String)(block: (Scene, String) => T) =
+      new FxOfflineThreadPool(name)(block)
 
 }
+
+
+

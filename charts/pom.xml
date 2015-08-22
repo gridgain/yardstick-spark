@@ -31,6 +31,16 @@
             <artifactId>scala-library</artifactId>
             <version>${scala.binary.version}</version>
         </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-reflect</artifactId>
+                <version>${scala.binary.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-compiler</artifactId>
+                <version>${scala.binary.version}</version>
+            </dependency>
     </dependencies>
     <repositories>
         <repository>

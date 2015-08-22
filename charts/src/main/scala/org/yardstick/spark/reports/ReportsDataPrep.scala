@@ -84,7 +84,7 @@ object ReportsDataPrep {
     def getFiles(baseDir: String, filter: (File) => Boolean): Seq[File] = {
       val out: Seq[Seq[File]] = for (f <- new File(baseDir).listFiles.filter(filter))
         yield {
-          pr(s"${f.getAbsolutePath}")
+//          pr(s"${f.getAbsolutePath}")
           f match {
             case _ if f.isDirectory => getFiles(f.getAbsolutePath, filter)
             case _ if f.isFile => Seq(f)
@@ -167,7 +167,7 @@ object ReportsDataPrep {
   def writeToCsv(lines: Seq[LLine], fileName: String) = {
     val csvLines = lines.map(_.toCsv)
     val out = s"${lines(0).csvHeader}\n${csvLines.mkString("\n")}"
-    tools.nsc.io.File(fileName).writeAll(out)
+    scala.tools.nsc.io.File(fileName).writeAll(out)
     out
   }
 

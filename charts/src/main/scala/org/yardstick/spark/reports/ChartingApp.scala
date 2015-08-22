@@ -31,6 +31,7 @@ import javafx.scene.layout.{BorderPane, GridPane}
 import javafx.stage.Stage
 import javax.imageio.ImageIO
 import org.yardstick.spark.reports.ReportsDataPrep.FxDataUtils.Coords
+import org.yardstick.spark.util.{LogAxis, FxOfflineThreadPool}
 
 import collection.JavaConverters._
 
@@ -60,7 +61,7 @@ object ChartingApp {
 
   class ChartingApp extends Application {
 
-    val YardstickCss = "/org/yardstick/spark/reports/ys-charts.css"
+    val YardstickCss = "org/yardstick/spark/reports/ys-charts.css"
     var dataPath: String = _
     var reportsPath: String = _
 
@@ -162,8 +163,11 @@ object ChartingApp {
             stage.setScene(scene)
             scene.getStylesheets.add(YardstickCss)
             stage.show()
-            val fname = s"$reportsPath/${sname.replace(" ", "_").replace("/", "-")}.jpg"
-//            val imageRunner = new SceneSnapshotRunner(scene, fname).start()
+            val fname = s"$reportsPath/${
+              sname.replace(" ", "_").replace("/", "-")
+                .replace(":", "-")
+            }.jpg"
+            //            val imageRunner = new SceneSnapshotRunner(scene, fname).start()
             imageTasksPool.submit(scene, fname)
           }
         })
@@ -172,7 +176,7 @@ object ChartingApp {
     }
 
     val imageTasksPool = FxOfflineThreadPool[Boolean]("ImagesPool") {
-//      (scene, fileName) => {
+      //      (scene, fileName) => {
       (scene: Scene, fileName: String) => {
         Thread.sleep(50)
         javafx.application.Platform.runLater(new Runnable() {
@@ -191,24 +195,24 @@ object ChartingApp {
     }
   }
 
-//  class SceneSnapshotRunner(scene: Scene, fileName: String) extends Task {
-//    def start() = {
-//      javafx.application.Platform.runLater(this)
-//      this
-//    }
-//
-//    override def call(): Boolean = {
-//      Thread.sleep(2500)
-//      val snapShot = scene.snapshot(null)
-//      pr(s"${new Date().toString} Saving image to ${fileName}")
-//      if (!ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null),
-//        "jpg", new File(fileName))) {
-//        throw new IllegalArgumentException(s"Failed to write image $fileName")
-//      }
-//      true
-//    }
-//  }
-//
+  //  class SceneSnapshotRunner(scene: Scene, fileName: String) extends Task {
+  //    def start() = {
+  //      javafx.application.Platform.runLater(this)
+  //      this
+  //    }
+  //
+  //    override def call(): Boolean = {
+  //      Thread.sleep(2500)
+  //      val snapShot = scene.snapshot(null)
+  //      pr(s"${new Date().toString} Saving image to ${fileName}")
+  //      if (!ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null),
+  //        "jpg", new File(fileName))) {
+  //        throw new IllegalArgumentException(s"Failed to write image $fileName")
+  //      }
+  //      true
+  //    }
+  //  }
+  //
   def saveUsingJavaFx(args: Array[String]): Unit = {
 
     Platform.setImplicitExit(false)
