@@ -14,7 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.yardstick.spark.util
+/**
+ * ChartingApp
+ *
+ * Takes a single command line argument: the path to the Yardstick-Spark
+ * Logs directory - which will be under /tmp/yslogs/<timestamp>
+ *
+ * Generates K Charts where K is the number of distinct Testcases in the CoreBattery
+ * Each Chart has four series: The TestCase x (IgniteRDD|NativeRdd, Count|CountByKey)
+ *
+ * In addition there is a "Summary" Page containing miniaturized copies of ALL the other
+ * charts.
+ *
+ * There are two significant components to this program:
+ * Data processing via grabData and formatData
+ * Charting: via the ChartingApp JavaFx application
+ */
 
 import java.awt.Transparency
 import java.awt.image.BufferedImage
@@ -24,41 +41,25 @@ import java.util.Date
 import java.util.concurrent.CountDownLatch
 import javafx.animation.PauseTransition
 import javafx.application.{Application, Platform}
+import javafx.concurrent.Task
 import javafx.embed.swing.SwingFXUtils
-import javafx.event.{ActionEvent, EventHandler}
+import javafx.event.{EventHandler, ActionEvent}
 import javafx.geometry.Insets
+import javafx.scene.image.{Image, WritableImage}
+import javafx.scene.paint.Color
+import javafx.scene.{Node, SnapshotParameters, Scene}
 import javafx.scene.chart.LineChart
 import javafx.scene.chart.XYChart._
 import javafx.scene.control.Label
-import javafx.scene.image.{Image, WritableImage}
 import javafx.scene.layout.{BorderPane, GridPane}
-import javafx.scene.paint.Color
-import javafx.scene.{Node, Scene, SnapshotParameters}
 import javafx.stage.Stage
 import javafx.util.Duration
 import javax.imageio.ImageIO
+import ReportsDataPrep.FxDataUtils.Coords
 
-import org.yardstick.spark.util.ReportsDataPrep.FxDataUtils.Coords
-import org.yardstick.spark.util.ReportsDataPrep.{MapSeriesMap, _}
+import collection.JavaConverters._
 
-import scala.collection.JavaConverters._
-
-/**
- * ChartingApp
- *
- * Takes a single command line argument: the path to the Yardstick-Spark 
- * Logs directory - which will be under /tmp/yslogs/<timestamp>
- *
- * Generates K Charts where K is the number of distinct Testcases in the CoreBattery
- * Each Chart has four series: The TestCase x (IgniteRDD|NativeRdd, Count|CountByKey)
- *
- * In addition there is a "Summary" Page containing miniaturized copies of ALL the other 
- * charts.
- *
- * There are two significant components to this program: 
- * Data processing via grabData and formatData
- * Charting: via the ChartingApp JavaFx application
- */
+import ReportsDataPrep.{MapSeriesMap, _}
 object ChartingAppExperimental {
 
 
