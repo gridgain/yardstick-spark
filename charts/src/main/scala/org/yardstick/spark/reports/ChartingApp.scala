@@ -137,6 +137,7 @@ object ChartingApp {
           mainScene = new Scene(tpane, displaySize._1, displaySize._2)
           mainScene.getStylesheets.add(YardstickCss)
           mainStage.setScene(mainScene)
+          mainStage.sizeToScene();
           mainStage.show()
         }
         javafx.application.Platform.runLater(new Runnable() {
@@ -145,33 +146,68 @@ object ChartingApp {
               tpane.add(lineChart, math.floor(ix / MaxCols).toInt, ix % MaxCols)
             }
             if (ix == seriesMap.size - 1) {
-              val fname = s"$reportsPath/summaryChart.jpg"
+              val fname = s"$reportsPath/summaryChart.png"
               imageTasksPool.submit(mainScene, fname)
 
             }
           }
         })
       }
+      //singleDisplay
+
       for ((ix, (sname, series)) <- (0 until seriesMap2.size).zip(seriesMap2)) {
         val lineChart = createChart(ix, sname, series)
         javafx.application.Platform.runLater(new Runnable() {
           override def run() = {
+            val tpane1 = new GridPane
             val stage = new Stage
-            val borderPane = new BorderPane
-            borderPane.getChildren.add(lineChart)
-            val scene = new Scene(borderPane, singleDisplaySize._1, singleDisplaySize._2)
-            stage.setScene(scene)
-            scene.getStylesheets.add(YardstickCss)
+            tpane1.setHgap(10)
+            tpane1.setVgap(10)
+            tpane1.setPadding(new Insets(0, 0, 0, 10))
+            tpane1.add(lineChart, math.floor(ix / MaxCols).toInt, ix % MaxCols)
+            val mainScene1 = new Scene(tpane1, singleDisplaySize._1, singleDisplaySize._2)
+            mainScene1.getStylesheets.add(YardstickCss)
+            stage.setScene(mainScene1)
+            stage.sizeToScene();
             stage.show()
+
             val fname = s"$reportsPath/${
               sname.replace(" ", "_").replace("/", "-")
                 .replace(":", "-")
-            }.jpg"
-            //            val imageRunner = new SceneSnapshotRunner(scene, fname).start()
-            imageTasksPool.submit(scene, fname)
+            }.png"
+
+            imageTasksPool.submit(mainScene1, fname)
+
           }
         })
       }
+
+      //singleDisplay
+
+
+      /* for ((ix, (sname, series)) <- (0 until seriesMap2.size).zip(seriesMap2)) {
+         val lineChart = createChart(ix, sname, series)
+         javafx.application.Platform.runLater(new Runnable() {
+           override def run() = {
+             val stage = new Stage
+             val borderPane = new BorderPane
+             borderPane.getChildren.add(lineChart)
+             val scene = new Scene(borderPane, singleDisplaySize._1, singleDisplaySize._2)
+             stage.setScene(scene)
+             scene.getStylesheets.add(YardstickCss)
+             stage.show()
+
+
+             val fname = s"$reportsPath/${
+               sname.replace(" ", "_").replace("/", "-")
+                 .replace(":", "-")
+             }.png"
+
+           //              val imageRunner = new SceneSnapshotRunner(scene, fname).start()
+            // imageTasksPool.submit(scene, fname)
+           }
+         })
+       }*/
 
     }
 
@@ -181,11 +217,11 @@ object ChartingApp {
         Thread.sleep(50)
         javafx.application.Platform.runLater(new Runnable() {
           override def run() = {
-            val fname = s"$reportsPath/summaryChart.jpg"
+            val fname = s"$reportsPath/summaryChart.png"
             val snapShot = scene.snapshot(null)
             pr(s"${new Date().toString} Saving image to ${fileName}")
             if (!ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null),
-              "jpg", new File(fileName))) {
+              "png", new File(fileName))) {
               throw new IllegalArgumentException(s"Failed to write image $fileName")
             }
           }
@@ -223,6 +259,7 @@ object ChartingApp {
 
   def main(args: Array[String]) {
     saveUsingJavaFx(args)
+    ImageDis.launchImagePane()
   }
 
 }
