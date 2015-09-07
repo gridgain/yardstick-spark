@@ -52,7 +52,7 @@ cd /mnt
 #echo "export IGNITE_HOME=/mnt/ignite" >> ~/.bash_profile
 #export IGNITE_HOME=/mnt/ignite
 #sshall "mkdir -p $IGNITE_HOME"
-ln -s $YARD_SPARK/config/spark-aws-config.xml /mnt/ignite/config/spark-aws-config.xml 
+#ln -s $YARD_SPARK/config/spark-aws-config.xml /mnt/ignite/config/spark-aws-config.xml 
 #rsyncall $IGNITE_HOME/
 
 cd /mnt
@@ -77,7 +77,7 @@ git checkout coresql
 git fetch origin coresql
 git rebase origin/coresql
 mvn -DskipTests=true -Dmaven.javadoc.skip=true clean package
-mvn -DskipTests=true -Dmaven.javadoc.skip=true assembly:single 
+# mvn -DskipTests=true -Dmaven.javadoc.skip=true assembly:single 
 sbin/makejar.sh
 rsyncall /root/yardstick-spark/
 

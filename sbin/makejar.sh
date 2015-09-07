@@ -13,9 +13,8 @@ JARS=$(echo "./libs/yardstick-spark-0.0.1.jar
 ./repo-indexing/ignite-indexing-1.4.1-SNAPSHOT.jar
 ./repo-log4j/ignite-log4j-1.4.1-SNAPSHOT.jar
 ./repo-scalar/ignite-scalar-1.4.1-SNAPSHOT.jar
+./repo-spring/ignite-spring-1.4.1-SNAPSHOT.jar
 ./repo-spark/ignite-spark-1.4.1-SNAPSHOT.jar
-./repo1/jfreechart2-2.0-pre1-perfupdate-sources.jar
-./repo1/jfreechart2-2.0-pre1-perfupdate.jar
 ./libs/aws-java-sdk-1.3.21.1.jar
 " | tr '\n' ' ')
 for jar in $JARS; do cp $jar $jdir; done
