@@ -20,22 +20,21 @@ import java.io.File
 import java.lang.{Double => JDouble}
 import java.util.Date
 import javafx.application.{Application, Platform}
-import javafx.concurrent.Task
 import javafx.embed.swing.SwingFXUtils
 import javafx.geometry.Insets
 import javafx.scene.Scene
 import javafx.scene.chart.LineChart
 import javafx.scene.chart.XYChart._
 import javafx.scene.control.Label
-import javafx.scene.layout.{BorderPane, GridPane}
+import javafx.scene.layout.GridPane
 import javafx.stage.Stage
 import javax.imageio.ImageIO
+
 import org.yardstick.spark.reports.ReportsDataPrep.FxDataUtils.Coords
-import org.yardstick.spark.util.{LogAxis, FxOfflineThreadPool}
-
-import collection.JavaConverters._
-
 import org.yardstick.spark.reports.ReportsDataPrep.{MapSeriesMap, _}
+import org.yardstick.spark.util.{FxOfflineThreadPool, LogAxis}
+
+import scala.collection.JavaConverters._
 
 /**
  * ChartingApp
@@ -116,7 +115,7 @@ object ChartingApp {
         chart.setTitle(s"Ignite-on-Spark Performance - $chartTitle")
         chart.setTitle(s"$chartTitle")
         val l = chart.lookup(".chart-title").asInstanceOf[Label]
-        l.setWrapText(true);
+        l.setWrapText(true)
 
         for ((sname, (series, mm)) <- seriesMap) {
           chart.getData().add(series.asInstanceOf[Series[JDouble, JDouble]])
@@ -153,7 +152,6 @@ object ChartingApp {
           }
         })
       }
-      //singleDisplay
 
       for ((ix, (sname, series)) <- (0 until seriesMap2.size).zip(seriesMap2)) {
         val lineChart = createChart(ix, sname, series)
@@ -182,37 +180,9 @@ object ChartingApp {
         })
       }
 
-      //singleDisplay
-
-
-      /* for ((ix, (sname, series)) <- (0 until seriesMap2.size).zip(seriesMap2)) {
-         val lineChart = createChart(ix, sname, series)
-         javafx.application.Platform.runLater(new Runnable() {
-           override def run() = {
-             val stage = new Stage
-             val borderPane = new BorderPane
-             borderPane.getChildren.add(lineChart)
-             val scene = new Scene(borderPane, singleDisplaySize._1, singleDisplaySize._2)
-             stage.setScene(scene)
-             scene.getStylesheets.add(YardstickCss)
-             stage.show()
-
-
-             val fname = s"$reportsPath/${
-               sname.replace(" ", "_").replace("/", "-")
-                 .replace(":", "-")
-             }.png"
-
-           //              val imageRunner = new SceneSnapshotRunner(scene, fname).start()
-            // imageTasksPool.submit(scene, fname)
-           }
-         })
-       }*/
-
     }
 
     val imageTasksPool = FxOfflineThreadPool[Boolean]("ImagesPool") {
-      //      (scene, fileName) => {
       (scene: Scene, fileName: String) => {
         Thread.sleep(50)
         javafx.application.Platform.runLater(new Runnable() {
@@ -231,24 +201,6 @@ object ChartingApp {
     }
   }
 
-  //  class SceneSnapshotRunner(scene: Scene, fileName: String) extends Task {
-  //    def start() = {
-  //      javafx.application.Platform.runLater(this)
-  //      this
-  //    }
-  //
-  //    override def call(): Boolean = {
-  //      Thread.sleep(2500)
-  //      val snapShot = scene.snapshot(null)
-  //      pr(s"${new Date().toString} Saving image to ${fileName}")
-  //      if (!ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null),
-  //        "jpg", new File(fileName))) {
-  //        throw new IllegalArgumentException(s"Failed to write image $fileName")
-  //      }
-  //      true
-  //    }
-  //  }
-  //
   def saveUsingJavaFx(args: Array[String]): Unit = {
 
     Platform.setImplicitExit(false)

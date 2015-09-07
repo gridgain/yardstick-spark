@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-package org.yardstick.spark.util
+package org.yardstick.spark.reports
+
 /**
  * ChartingApp
  *
@@ -56,6 +57,7 @@ import javafx.stage.Stage
 import javafx.util.Duration
 import javax.imageio.ImageIO
 import ReportsDataPrep.FxDataUtils.Coords
+import org.yardstick.spark.util.LogAxis
 
 import collection.JavaConverters._
 
