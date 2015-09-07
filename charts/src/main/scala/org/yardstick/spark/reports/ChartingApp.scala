@@ -259,7 +259,6 @@ object ChartingApp {
 
   def main(args: Array[String]) {
     saveUsingJavaFx(args)
-    ImageDis.launchImagePane()
   }
 
 }
