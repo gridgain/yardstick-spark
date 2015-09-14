@@ -55,6 +55,8 @@ cd /mnt
 #ln -s $YARD_SPARK/config/spark-aws-config.xml /mnt/ignite/config/spark-aws-config.xml 
 #rsyncall $IGNITE_HOME/
 
+sudo yum install -y xorg-x11-server-Xvfb
+
 cd /mnt
 wget https://github.com/apache/spark/archive/v1.4.1.tar.gz
 tar -xvf v1.4.1.tar.gz
