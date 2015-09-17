@@ -52,12 +52,12 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <yardstick.version>RELEASE</yardstick.version>
-        <ignite.snapshot.version>1.5.0-SNAPSHOT</ignite.snapshot.version>
+        <ignite.snapshot.version>1.4.0-SNAPSHOT</ignite.snapshot.version>
         <java.build.version>1.7</java.build.version>
         <scala.version>2.11</scala.version>
         <scala.binary.version>2.11.2</scala.binary.version>
         <spark.version>1.4.1</spark.version>
-        <ignite.version>1.5.0-SNAPSHOT</ignite.version>
+        <ignite.version>1.4.0-SNAPSHOT</ignite.version>
         <ignite.core.jar>${basedir}/repo-core/ignite-core-${ignite.version}.jar</ignite.core.jar>
         <ignite.aws.jar>${basedir}/repo-aws/ignite-aws-${ignite.version}.jar</ignite.aws.jar>
         <ignite.spark.jar>${basedir}/repo-spark/ignite-spark-${ignite.version}.jar</ignite.spark.jar>
