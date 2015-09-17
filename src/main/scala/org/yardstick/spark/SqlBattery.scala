@@ -6,13 +6,13 @@ import java.util.Date
 import org.apache.ignite.spark.IgniteRDD
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.storage.StorageLevel
-import org.yardstick.spark.YsSparkTypes.{Action, SqlCollect, SqlCollectAsList, _}
+import org.yardstick.spark.YsSparkTypes.{Action, Collect, CollectList, _}
 import org.yardstick.spark.util.YardstickLogger._
-import org.yardstick.spark.util.{CommonFunctions, LoadFunctions, YamlConfiguration}
+import org.yardstick.spark.util.{TimedResult, CommonFunctions, LoadFunctions, YamlConfiguration}
 
 import scala.collection.mutable
 
-case class SqlBatteryConfigs(ic: IgniteRDD[DataFrameKey, DataFrameVal], sqlContext: SQLContext, sqlConfig: YamlConfiguration, useIgnite: Boolean,fileType:Seq[String])
+case class SqlBatteryConfigs(ic: IgniteRDD[DataFrameKey, DataFrameVal], sqlContext: SQLContext, sqlConfig: YamlConfiguration, useIgnite: Seq[Boolean], fileType: Seq[String])
 
 object SqlTestMatrix {
   val A = Array
@@ -23,26 +23,23 @@ object SqlTestMatrix {
     val resArr = mutable.ArrayBuffer[TestResult]()
     val dtf = new SimpleDateFormat("MMdd-hhmmss").format(new Date)
 
-      for(file<-sqlBatteryConfigs.fileType) {
-        val rawname = "SQLSmoke"
-        val tname = s"$dtf/$rawname"
-        val igniteOrNative = if (sqlBatteryConfigs.useIgnite) "igniteSQL" else "nativeSQL"
-        val name = s"$tname ${file}file ${igniteOrNative}"
-        val dir = name.replace(" ", "/")
-
-        val optIcInfo = if (sqlBatteryConfigs.useIgnite) Some(sqlBatteryConfigs.useIgnite) else None
-
-        loadData(sqlBatteryConfigs,file)
-
-        val battery = new SqlBattery(sqlBatteryConfigs, name, dir)
-        val (pass, tresults) = battery.runBattery()
-        passArr += pass
-        resArr ++= tresults
-      }
-
+    for (useIgnite <- sqlBatteryConfigs.useIgnite;
+         file <- sqlBatteryConfigs.fileType) {
+      val rawname = "SQLSmoke"
+      val tname = s"$dtf/$rawname"
+      val igniteOrNative = if (useIgnite) "ignite" else "native"
+      val name = s"$tname/${file.split("\t")(1)}/${igniteOrNative}"
+      val dir = name.replace(" ", "/")
+      loadData(sqlBatteryConfigs, file.split("\t")(0))
+      val battery = new SqlBattery(sqlBatteryConfigs, name, dir, useIgnite)
+      val (pass, tresults) = battery.runBattery()
+      passArr += pass
+      resArr ++= tresults
+    }
     (passArr.forall(identity), resArr)
   }
-  def loadData(sqlBatteryConfigs:SqlBatteryConfigs,fileName:String){
+
+  def loadData(sqlBatteryConfigs: SqlBatteryConfigs, fileName: String) {
 
     new CommonFunctions().loadDataInToIgniteRDD(sqlBatteryConfigs.sqlContext.sparkContext, sqlBatteryConfigs.ic, fileName, "\t")
 
@@ -53,35 +50,51 @@ object SqlTestMatrix {
 }
 
 class SqlBattery(sqlBatteryConfigs: SqlBatteryConfigs,
-                 testName: String, outputDir: String) extends TestBattery("SqlBattery", s"$outputDir/$testName") {
+                 testName: String, outputDir: String, useIgnite: Boolean) extends TestBattery("SqlBattery", s"${outputDir}/$testName") {
   assert(testName != null, "Hey null's are not cool")
 
   override def runBattery() = {
 
-    val xformRdds = if (sqlBatteryConfigs.useIgnite) {
+    val xformRdds = if (useIgnite) {
       Seq(
-        (s"$testName/COUNT", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
-          """SELECT COUNT(*) from Twitter""".stripMargin))),
-        (s"$testName/ORDERBY", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
-         """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin))),
-        (s"$testName/GROUPBY", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
-          """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at  limit 50""".stripMargin))),
-        (s"$testName/JOIN", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.join",
-          """SELECT e.username AS userName, m.tweet AS tweetText FROM Twitter e INNER JOIN Twitter m ON e.id = m.id;""".stripMargin)))
+        TimedResult(s"$testName/COUNT/queryRunTime") {
+          (s"$testName/COUNT", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
+            """SELECT COUNT(*) from Twitter""".stripMargin)))
+        },
+        TimedResult(s"$testName/ORDERBY/queryRunTime") {
+          (s"$testName/ORDERBY", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
+            """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin)))
+        },
+        TimedResult(s"$testName/GROUPBY/queryRunTime") {
+          (s"$testName/GROUPBY", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
+            """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at  limit 50""".stripMargin)))
+        },
+        TimedResult(s"$testName/JOIN/queryRunTime") {
+          (s"$testName/JOIN", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.join",
+            """SELECT e.username AS userName, m.tweet AS tweetText FROM Twitter e INNER JOIN Twitter m ON e.id = m.id limit 50"""".stripMargin)))
+        }
       )
     } else {
       Seq(
-        (s"$testName/COUNT", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
-          """SELECT COUNT(*) from Twitter""".stripMargin))),
-        (s"$testName/ORDERBY", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
-          """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin))),
-        (s"$testName/GROUPBY", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
-         """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at  limit 50""".stripMargin))),
-        (s"$testName/JOIN", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.join",
-          """  SELECT e.username AS userName, m.tweet AS tweetText FROM Twitter e INNER JOIN Twitter m ON e.id = m.id;""".stripMargin)))
-     )
+        TimedResult(s"$testName/COUNT/queryRunTime") {
+          (s"$testName/COUNT", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
+            """SELECT COUNT(*) from Twitter""".stripMargin)))
+        },
+        TimedResult(s"$testName/ORDERBY/queryRunTime") {
+          (s"$testName/ORDERBY", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
+            """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin)))
+        },
+        TimedResult(s"$testName/GROUPBY/queryRunTime") {
+          (s"$testName/GROUPBY", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
+            """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at  limit 50""".stripMargin)))
+        },
+        TimedResult(s"$testName/JOIN/queryRunTime") {
+          (s"$testName/JOIN", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.join",
+            """  SELECT e.username AS userName, m.tweet AS tweetText FROM Twitter e INNER JOIN Twitter m ON e.id = m.id limit 50""".stripMargin)))
+        }
+      )
     }
-    val actions = Seq(SqlCollect, SqlCollectAsList)
+    val actions = Seq(Collect, CollectList)
     val res = for ((name, rdd) <- xformRdds) yield {
       runXformTests(name, rdd, actions)
     }
@@ -93,7 +106,7 @@ class SqlBattery(sqlBatteryConfigs: SqlBatteryConfigs,
   def getSize(x: Any) = {
     x match {
       case arr: Array[_] => arr.length
-      case l:  java.util.List[_] => l.size()
+      case l: java.util.List[_] => l.size()
       case _ => throw new IllegalArgumentException(s"What is our type?? ${x.getClass.getName}")
     }
   }
@@ -101,15 +114,14 @@ class SqlBattery(sqlBatteryConfigs: SqlBatteryConfigs,
   def runXformTests(name: String, dataFrame: InputDataFrame, actions: Seq[Action]): Seq[TestResult] = {
     val results = for (action <- actions) yield {
       val tname = s"$name/$action"
-      trace(tname, s"Starting xform test $tname")
-      val result = action match {
-        case SqlCollect => dataFrame.collect
-        case SqlCollectAsList=> dataFrame.collectAsList()
-        case _ => throw new IllegalArgumentException(s"Unrecognized action $action")
+      TimedResult(tname) {
+        val result = action match {
+          case Collect => dataFrame.collect
+          case CollectList => dataFrame.collectAsList()
+          case _ => throw new IllegalArgumentException(s"Unrecognized action $action")
+        }
+        TestResult(tname, tname, Some(getSize(result)))
       }
-      val tres = TestResult(tname, tname, Some(getSize(result)))
-      trace(tname, s"Completed xform test $tname with result=$tres")
-      tres
     }
     results
   }

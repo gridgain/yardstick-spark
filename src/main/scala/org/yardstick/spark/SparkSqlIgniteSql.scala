@@ -9,64 +9,55 @@ import org.yardstickframework.BenchmarkConfiguration
 import scala.collection.JavaConverters._
 
 class SparkSqlIgniteSql extends SparkAbstractBenchmark(SQL_CACHE_NAME) {
-  var coreTestsFile : String = "config/sqlTests.yml"
+  var coreTestsFile: String = "config/sqlTests.yml"
   var sqlConfig: YamlConfiguration = _
   var cache: IgniteRDD[String, Twitter] = _
-  val timer = new TimedResult()
+
   var dF: DataFrame = _
 
-    @throws(classOf[Exception])
+  @throws(classOf[Exception])
   override def setUp(cfg: BenchmarkConfiguration): Unit = {
     println(s"setUp BenchmarkConfiguration=${cfg.toString}")
     super.setUp(cfg)
     val configs = cfg.customProperties.asScala
-//      val configFile = configs.getOrElse("SQL_CONFIG_FILE", "config/benchmark-twitter.yml")
-      val configFile = "config/benchmark-twitter.yml"
+    val configFile = "config/benchmark-twitter.yml"
     sqlConfig = new YamlConfiguration(configFile)
     println(sqlConfig)
-       val  csvFile = sqlConfig("twitter.input.file").getOrElse("Twitter_Data.csv")
-      cache = new CommonFunctions().getIgniteCacheConfig(sc, cacheName)
-   // new CommonFunctions().loadDataInToIgniteRDD(sc, cache, csvFile, "\t")
+    val csvFile = sqlConfig("twitter.input.file").getOrElse("Twitter_Data.csv")
+    cache = new CommonFunctions().getIgniteCacheConfig(sc, cacheName)
 
-    //val df = LoadFunctions.loadDataCSVFile(sqlContext, csvFile, "\t")
-   // df.registerTempTable("Twitter")
-   // df.persist(StorageLevel.MEMORY_ONLY)
   }
 
-  def readTestConfig(ymlFile: String) = {
+  def readTestConfig(ymlFile: String): SqlBatteryConfigs = {
     val yml = new YamlConfiguration(ymlFile)
-
-    def toStrList(cval: Option[_], default: Seq[String]) : Seq[String] = {
+    def toStrList(cval: Option[_], default: Seq[String]): Seq[String] = {
       import collection.JavaConverters._
       if (cval.isEmpty) {
         default
       } else cval.get match {
-
         case ints: java.util.ArrayList[_] => ints.asScala.toSeq.asInstanceOf[Seq[String]]
         case _ => throw new IllegalArgumentException(s"Unexpected type in toStringList ${cval.get.getClass.getName}")
       }
     }
 
-    def toBoolList(cval: Option[_], default: Seq[Boolean]) : Seq[Boolean] = {
+    def toBoolList(cval: Option[_], default: Seq[Boolean]): Seq[Boolean] = {
       import collection.JavaConverters._
       if (cval.isEmpty) {
         default
       } else cval.get match {
-
         case bools: java.util.ArrayList[_] => bools.asScala.toSeq.asInstanceOf[Seq[Boolean]]
         case _ => throw new IllegalArgumentException(s"Unexpected type in toBooleanList ${cval.get.getClass.getName}")
       }
     }
 
     def toLong(cval: Option[Long], default: Long) = cval.getOrElse(default)
-
     val A = Array
     val conf = SqlBatteryConfigs(
       cache,
       sqlContext,
       sqlConfig,
-      yml("sql.useIgnite").getOrElse(true).asInstanceOf[Boolean],
-      toStrList(yml("sql.Differentfiles"),Seq("small_Twitter_Data.csv","medium_Twitter_Data.csv","large_Twitter_Data.csv"))
+      toBoolList(yml("core.useIgnite"), Seq(true, false)),
+      toStrList(yml("sql.Differentfiles"), Seq("small_Twitter_Data.csv", "medium_Twitter_Data.csv", "large_Twitter_Data.csv"))
     )
     println(s"SQLTest config is ${conf.toString}")
     conf
@@ -74,10 +65,8 @@ class SparkSqlIgniteSql extends SparkAbstractBenchmark(SQL_CACHE_NAME) {
 
   @throws(classOf[java.lang.Exception])
   override def test(ctx: java.util.Map[AnyRef, AnyRef]): Boolean = {
-    val sqlBatteryConfigs=readTestConfig(coreTestsFile)
-    timer("Twitter-Data-IgniteSQL") {
-      SqlTestMatrix.runMatrix(sqlBatteryConfigs)
-    }
+    val sqlBatteryConfigs = readTestConfig(coreTestsFile)
+    SqlTestMatrix.runMatrix(sqlBatteryConfigs)
     true
   }
 
@@ -85,6 +74,7 @@ class SparkSqlIgniteSql extends SparkAbstractBenchmark(SQL_CACHE_NAME) {
 
 object SparkSqlIgniteSql {
   val SQL_CACHE_NAME = "sqlcache"
+
   def main(args: Array[String]) {
     val cfg = new BenchmarkConfiguration()
     cfg.commandLineArguments(args)

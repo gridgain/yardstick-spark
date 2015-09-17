@@ -52,11 +52,7 @@ object YsSparkTypes {
 
   case object CollectAsMap extends Action("collectAsMap")
 
-  case object SqlCollect extends Action("collect")
-
-  case object SqlCollectByKey extends Action("collectByKey")
-
-  case object SqlCollectAsList extends Action("collectAsList")
+  case object CollectList extends Action("collectAsList")
 
 }
 

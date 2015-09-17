@@ -23,6 +23,7 @@ import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder
 import org.apache.ignite.yardstick.IgniteAbstractBenchmark
 import org.apache.spark._
 import org.apache.spark.sql.SQLContext
+
 import org.yardstickframework._
 
 import scala.annotation.meta.field
@@ -82,6 +83,7 @@ abstract class SparkAbstractBenchmark[RddK,RddV](val cacheName: String)
   @throws(classOf[Exception])
   override def tearDown() {
     sc.stop
+
   }
 }
 
@@ -105,6 +107,25 @@ class TestCacheConfiguration[RddK,RddV] {
   def cacheConfiguration(gridName: String)
   (implicit rddK : TypeTag[RddK], rddV: TypeTag[RddV]): CacheConfiguration[RddK, RddV] = {
     val ccfg = new CacheConfiguration[RddK, RddV]()
+    ccfg.setBackups(1)
+    ccfg.setName(gridName)
+    ccfg.setCacheMode(CacheMode.PARTITIONED)
+    ccfg.setRebalanceMode(CacheRebalanceMode.SYNC)
+    // Indexing is only useful for SQL operations
+    if (false) {
+      // TODO(enable if in SQL tests
+      ccfg.setIndexedTypes(rddK.mirror.runtimeClass(rddK.tpe.typeSymbol.asClass),
+        rddV.mirror.runtimeClass(rddV.tpe.typeSymbol.asClass))
+    }
+    ccfg
+  }
+
+}
+
+class TestSqlCacheConfiguration[String,Twitter] {
+  def cacheConfiguration(gridName: java.lang.String)
+                        (implicit rddK : TypeTag[String], rddV: TypeTag[Twitter]): CacheConfiguration[String, Twitter] = {
+    val ccfg = new CacheConfiguration[String, Twitter]()
     ccfg.setBackups(1)
     ccfg.setName(gridName)
     ccfg.setCacheMode(CacheMode.PARTITIONED)
