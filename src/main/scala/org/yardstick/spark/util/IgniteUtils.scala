@@ -27,7 +27,7 @@ object IgniteUtils {
 
   def waitForIgnite(ic: IgniteContext[_,_]) = {
     val cluster = ic.ignite.cluster
-    val nServers = System.getProperty("ignite.servers.count").toInt
+    val nServers = System.getenv("ignite_servers_count").toInt
     var curServers = 0
     var nloops = 0
     do {
