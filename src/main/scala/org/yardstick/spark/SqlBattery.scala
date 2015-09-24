@@ -57,38 +57,38 @@ class SqlBattery(sqlBatteryConfigs: SqlBatteryConfigs,
 
     val xformRdds = if (useIgnite) {
       Seq(
-        TimedResult(s"$testName/COUNT/queryRunTime") {
+        TimedResult(s"$testName/COUNT/COUNT_QrunTime") {
           (s"$testName/COUNT", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
             """SELECT COUNT(*) from Twitter""".stripMargin)))
         },
-        TimedResult(s"$testName/ORDERBY/queryRunTime") {
+        TimedResult(s"$testName/ORDERBY/ORDERBY_QrunTime") {
           (s"$testName/ORDERBY", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
             """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin)))
         },
-        TimedResult(s"$testName/GROUPBY/queryRunTime") {
+        TimedResult(s"$testName/GROUPBY/GROUPBY_QrunTime") {
           (s"$testName/GROUPBY", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
             """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at  limit 50""".stripMargin)))
         },
-        TimedResult(s"$testName/JOIN/queryRunTime") {
+        TimedResult(s"$testName/JOIN/JOIN_QrunTime") {
           (s"$testName/JOIN", sqlBatteryConfigs.ic.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.join",
             """SELECT e.username AS userName, m.tweet AS tweetText FROM Twitter e INNER JOIN Twitter m ON e.id = m.id limit 50"""".stripMargin)))
         }
       )
     } else {
       Seq(
-        TimedResult(s"$testName/COUNT/queryRunTime") {
+        TimedResult(s"$testName/COUNT/COUNT_QrunTime") {
           (s"$testName/COUNT", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.count",
             """SELECT COUNT(*) from Twitter""".stripMargin)))
         },
-        TimedResult(s"$testName/ORDERBY/queryRunTime") {
+        TimedResult(s"$testName/ORDERBY/ORDERBY_QrunTime") {
           (s"$testName/ORDERBY", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.orderby",
             """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at ORDER BY count1  limit 50""".stripMargin)))
         },
-        TimedResult(s"$testName/GROUPBY/queryRunTime") {
+        TimedResult(s"$testName/GROUPBY/GROUPBY_QrunTime") {
           (s"$testName/GROUPBY", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.groupby",
             """SELECT created_at, COUNT(tweet) as count1 FROM Twitter GROUP BY created_at  limit 50""".stripMargin)))
         },
-        TimedResult(s"$testName/JOIN/queryRunTime") {
+        TimedResult(s"$testName/JOIN/JOIN_QrunTime") {
           (s"$testName/JOIN", sqlBatteryConfigs.sqlContext.sql(sqlBatteryConfigs.sqlConfig("twitter.sql.join",
             """  SELECT e.username AS userName, m.tweet AS tweetText FROM Twitter e INNER JOIN Twitter m ON e.id = m.id limit 50""".stripMargin)))
         }
