@@ -43,8 +43,7 @@ class CommonFunctions {
     println(s"Ignite properties file=$igniteProps")
     val igniteContext = new IgniteContext[String, Twitter](sc,
       () ⇒ IgnitionEx.loadConfiguration(igniteProps).get1(), false)
-
-
+    IgniteUtils.waitForIgnite(igniteContext)
     val cconf = new TestSqlCacheConfiguration[String, Twitter]().cacheConfiguration(cacheName)
     println(s"Set igniteRDD Cache RebalanceMode=${cconf.getRebalanceMode}")
     val cache: IgniteRDD[String, Twitter] = igniteContext.fromCache(cconf)

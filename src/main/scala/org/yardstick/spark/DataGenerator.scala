@@ -24,7 +24,7 @@ import org.apache.spark._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.yardstick.spark.YsSparkTypes._
-import org.yardstick.spark.util.Twitter
+import org.yardstick.spark.util.{IgniteUtils, Twitter}
 
 import scala.collection.mutable
 
@@ -83,7 +83,7 @@ class FileDataGenerator(sc: SparkContext, dataParams: GenDataParams, path: Strin
 }) {}
 
 class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIgnite: Boolean,
-    optCacheName : Option[String] = None)
+  optCacheName: Option[String] = None)
   extends DataGenerator(dataParams, None) {
   override def genData(optMinIn: Option[Long] = dataParams.optMin, optMaxIn: Option[Long] = dataParams.optMax) = {
 
@@ -100,7 +100,7 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
         .foldLeft(new mutable.ArrayBuffer[(Int, (Long, Long))]()) { case (m, rx) =>
         m += Tuple2(if (rx == 0) firstNrec else nrecsPerSlice, (1L * rx * width, (rx + 1L) * width))
       }
-      val words = DataGeneratorUtils.readWords
+      val words = DataGeneratorUtils.words
       println(s"len(words) is ${words.length}")
       val nWords = words.size
     }
@@ -109,26 +109,17 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
       type RddK = RddKey
       type RddV = RddVal
       val cacheName = optCacheName.get
-//      val iconf = new IgniteConfiguration().setI
-//      if (System.getProperties().contains("IGNITE_HOME")) {
-//        iconf.setIgniteHome(System.getProperty("IGNITE_HOME"))
-//      }
-
-//      val igHome = System.getProperty("IGNITE_HOME")
-//      println(s"3: IGNITE_HOME is ${igHome}")
       val igniteProps = System.getProperties.getProperty("ignite.properties.file",
-              "file:///root/yardstick-spark/config/spark-aws-config.xml")
+        "file:///root/yardstick-spark/config/spark-aws-config.xml")
       println(s"Ignite properties file=$igniteProps")
       val ic = new IgniteContext[RddK, RddV](sc,
         () ⇒ IgnitionEx.loadConfiguration(igniteProps).get1(), false)
-//        () ⇒ SparkAbstractBenchmark.igniteConfiguration[TypeTag[RddKey], TypeTag[RddVal]](cacheName))
-//          () ⇒ new IgniteConfiguration().setIgniteHome(igHome))
-//          () ⇒ new IgniteConfiguration())
-//      ic.ignite.configuration.setIgniteHome(igHome)
       val cconf = new TestCacheConfiguration[Long, String]().cacheConfiguration(cacheName)
       println(s"Set igniteRDD Cache RebalanceMode=${cconf.getRebalanceMode}")
       val cache: IgniteRDD[Long, String] = ic.
         fromCache(cconf)
+
+      IgniteUtils.waitForIgnite(ic)
 
       val localData = sc.parallelize({
         val dataStruct = dataToBc // bcData.value
@@ -157,9 +148,10 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
         out
       }, dataToBc.nPartitions).persist()
       cache.savePairs(sc.parallelize((0 until dataToBc.nRecords).toList.map { x =>
-        (x.toLong, s"Hello: $x") }, dataToBc.nPartitions).mapPartitions { iter =>
-           val igHome = System.getProperty("IGNITE_HOME")
-           println(s"WORKER IGNITE_HOME is ${igHome}")
+        (x.toLong, s"Hello: $x")
+      }, dataToBc.nPartitions).mapPartitions { iter =>
+        val igHome = System.getProperty("IGNITE_HOME")
+        println(s"WORKER IGNITE_HOME is ${igHome}")
         iter
       })
       cache
@@ -204,7 +196,7 @@ class SingleSkewDataGenerator(sc: SparkContext, dataParams: GenDataParams, useIg
 
 
 object DataGeneratorUtils {
-  def readWords() = {
+  lazy val words = {
     val text = scala.io.Source.fromFile("src/main/resources/aliceInWonderland.txt").mkString("")
     println(s"alice textlen = ${text.size}")
     val rmtext = text.map { c => c match {
@@ -213,8 +205,26 @@ object DataGeneratorUtils {
       case _ => c
     }
     }.toString
-    val words = rmtext.split(" ")
-    words
+    val awords = rmtext.split(" ").map(_.trim).filter(_.length > 2).distinct
+    awords
+  }
+  lazy val wordsLen = words.length
+
+  def generateKDistinctWords(k: Int, optLen: Option[Int] = None) = {
+    (0 until k).foldLeft(mutable.ArrayBuffer[String]()) { case (arr, ix) =>
+      val base = s"${words(ix % wordsLen)}$ix"
+      val out =
+        if (optLen.isDefined && base.length < optLen.get) {
+          var outword = base
+          while (outword.length < optLen.get) {
+            outword += base
+          }
+          outword.substring(0,optLen.get)
+        } else {
+          base
+        }
+      arr :+ out
+    }
   }
 
 }
