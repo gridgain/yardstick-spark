@@ -2,6 +2,6 @@ sql.useIgnite:
   - false
   - true
 sql.Differentfiles:
-  - src/main/resources/small_Twitter_Data_100MB.csv	520747recs
+  - src/main/resources/large_Twitter_Data_100MB.csv	520747recs
   - src/main/resources/medium_Twitter_Data_50MB.csv	343650recs
-  - src/main/resources/large_Twitter_Data_10MB.csv	67989recs
+  - src/main/resources/small_Twitter_Data_10MB.csv	67989recs
