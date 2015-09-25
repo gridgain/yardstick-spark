@@ -1,0 +1,48 @@
+IgniteSQL_COunt CPU-USER(AVG,MAX,MIN):
+74.5 79.00 72.00
+IgniteSQL_COunt CPU Idle (AVG,MAX,MIN):
+16.9 19.00 13.00
+IgniteSQL_COunt Processes Waiting For Run Time(AVG,MAX,MIN):
+7.4 11.00 3.00
+@IgniteSQL_COunt Completion Time:
+10
+---------------------------------------------------------------------------------------
+IgniteSQL_OrderBy CPU-USER(AVG,MAX,MIN):
+80.1111 89.00 72.00
+IgniteSQL_OrderBy CPU Idle (AVG,MAX,MIN):
+13.5556 22.00 5.00
+IgniteSQL_OrderBy Processes Waiting For Run Time(AVG,MAX,MIN):
+7.77778 19.00 3.00
+@IgniteSQL_OrderBy Completion Time:
+9
+---------------------------------------------------------------------------------------
+IgniteSQL_GroupBy CPU-USER(AVG,MAX,MIN):
+94.8571 97.00 93.00
+IgniteSQL_GroupBy CPU Idle (AVG,MAX,MIN):
+2.85714 4.00 1.00
+IgniteSQL_GroupBy Processes Waiting For Run Time(AVG,MAX,MIN):
+8.71429 11.00 6.00
+@IgniteSQL_GroupBy Completion Time:
+7
+---------------------------------------------------------------------------------------
+IgniteSQL_JOIN CPU-USER(AVG,MAX,MIN):
+94.8571 97.00 93.00
+IgniteSQL_JOIN CPU Idle (AVG,MAX,MIN):
+2.85714 4.00 1.00
+IgniteSQL_JOIN Processes Waiting For Run Time(AVG,MAX,MIN):
+8.71429 11.00 6.00
+@IgniteSQL_JOIN Completion Time:
+7
+---------------------------------------------------------------------------------------
+IgniteSQL_COunt Operations/sec (more is better)(AVG,MAX,MIN):
+69.9 95.00 62.00
+------------------------------------------------------------------------------------------
+IgniteSQL_OrderBy Operations/sec (more is better)(AVG,MAX,MIN):
+14.8889 31.00 0.00
+------------------------------------------------------------------------------------------
+IgniteSQL_GroupBy Operations/sec (more is better)(AVG,MAX,MIN):
+19.125 43.00 0.00
+------------------------------------------------------------------------------------------
+IgniteSQL_JOIN Operations/sec (more is better)(AVG,MAX,MIN):
+4 8.00 0.00
+------------------------------------------------------------------------------------------

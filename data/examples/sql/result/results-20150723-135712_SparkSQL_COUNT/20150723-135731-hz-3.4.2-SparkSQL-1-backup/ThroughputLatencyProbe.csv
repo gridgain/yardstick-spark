@@ -1,0 +1,15 @@
+--Probe dump file for probe: org.yardstickframework.probes.ThroughputLatencyProbe@1c07f70 (class org.yardstickframework.probes.ThroughputLatencyProbe)
+--Created Thu Jul 23 13:57:31 IST 2015
+--Benchmark config: BenchmarkConfiguration [driverNames='[SparkSqlQueryBenchmark]', serverName='IgniteNode', threads=64, duration=10, warmup=60, dfltProbeClsNames=[ThroughputLatencyProbe, PercentileProbe, DStatProbe, VmStatProbe], propsFileName='config/benchmark-SparkSQL.properties', packages=[org.yardstickframework, org.yardstickframework.ignite, org.yardstickframework.spark, org.apache.ignite.yardstick], cmdArgs=[--outputFolder, results-20150723-135712, -cfg, /mnt/thirdeye/yardstick-spark/config/ignite-localhost-config.xml, -nn, 2, -b, 1, -w, 60, -d, 10, -t, 64, -sm, PRIMARY_SYNC, -dn, SparkSqlQueryBenchmark, -cn, atomic, -sn, IgniteNode, -ds, hz-3.4.2--SparkSQL-1-backup, --config, config/benchmark-SparkSQL.properties], probeWriter='null', customProps={BENCHMARK_PACKAGES=org.yardstickframework,org.yardstickframework.ignite,org.yardstickframework.spark,org.apache.ignite.yardstick, "=, SQL_CONFIG_FILE=config/benchmark-twitter.yml, DRIVER_HOSTS=localhost, RESTART_SERVERS=true, CONFIGS="-cfg /mnt/thirdeye/yardstick-spark/config/ignite-localhost-config.xml -nn ${nodesNum} -b 1 -w 60 -d 10 -t 64 -sm PRIMARY_SYNC -dn SparkSqlQueryBenchmark -cn atomic -sn IgniteNode -ds ${ver}-SparkSQL-1-backup, JVM_OPTS=${JVM_OPTS}" -Xloggc:./gc.log -XX:+PrintGCDetails -verbose:gc -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+UseTLAB -XX:NewSize=128m -XX:MaxNewSize=128m -XX:MaxTenuringThreshold=0 -XX:SurvivorRatio=1024 -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=60 ", nodesNum=$((`echo ${SERVER_HOSTS} | tr ',' '' | wc -l` + `echo ${DRIVER_HOSTS} | tr ',' '' | wc -l`)), ver="hz-3.4.2-", SERVER_HOSTS=localhost, BENCHMARK_LABEL=sparkcore}, shutdownHook=true, outputFolder=results-20150723-135712, outputWriter=java.io.PrintStream@d7d848, errorWriter=java.io.PrintStream@b8627a, descriptions=[hz-3.4.2--SparkSQL-1-backup], hostName=]
+--Description: hz-3.4.2--SparkSQL-1-backup
+@@SparkSqlQueryBenchmark
+**"Time, sec","Operations/sec (more is better)","Latency, nsec (less is better)"
+1437640114,17.00,2051916939.29
+1437640115,0.00,0.00
+1437640116,0.00,0.00
+1437640117,8.00,3126109192.50
+1437640118,36.00,4405245647.67
+1437640119,20.00,4872663710.75
+1437640120,6.00,3453886121.33
+1437640121,16.00,3269665414.69
+1437640122,23.00,3873411563.17

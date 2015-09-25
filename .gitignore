@@ -4,3 +4,5 @@
 *.jar
 target/*
 bin/*
+**/*.class
+charts/target/*

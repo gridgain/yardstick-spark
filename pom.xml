@@ -42,17 +42,34 @@
             <name>GridGain</name>
             <email>mvncentral@gridgain.com</email>
         </developer>
+        <developer>
+            <id>thirdeyecss</id>
+            <name>ThirdEye Consulting and Services</name>
+            <email>results@thirdeyecss.com</email>
+        </developer>
     </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <yardstick.version>RELEASE</yardstick.version>
-        <ignite.version>1.1.2-SNAPSHOT</ignite.version>
+        <ignite.snapshot.version>1.4.0-SNAPSHOT</ignite.snapshot.version>
+        <java.build.version>1.7</java.build.version>
+        <scala.version>2.11</scala.version>
+        <scala.binary.version>2.11.2</scala.binary.version>
+        <spark.version>1.4.1</spark.version>
+        <ignite.version>1.4.0-SNAPSHOT</ignite.version>
+        <ignite.core.jar>${basedir}/repo-core/ignite-core-${ignite.version}.jar</ignite.core.jar>
+        <ignite.aws.jar>${basedir}/repo-aws/ignite-aws-${ignite.version}.jar</ignite.aws.jar>
+        <ignite.spark.jar>${basedir}/repo-spark/ignite-spark-${ignite.version}.jar</ignite.spark.jar>
+        <ignite.indexing.jar>${basedir}/repo-indexing/ignite-indexing-${ignite.version}.jar</ignite.indexing.jar>
+        <ignite.scalar.jar>${basedir}/repo-scalar/ignite-scalar-${ignite.version}.jar</ignite.scalar.jar>
+        <ignite.log4j.jar>${basedir}/repo-log4j/ignite-log4j-${ignite.version}.jar</ignite.log4j.jar>
+        <ignite.spring.jar>${basedir}/repo-spring/ignite-spring-${ignite.version}.jar</ignite.spring.jar>
+        <ignite-yardstick.jar>${basedir}/repo/ignite-yardstick-0.1.0.jar</ignite-yardstick.jar>
+        <jfreechart-perfupdate.jar>${basedir}/repo1/jfreechart2-2.0-pre1-perfupdate.jar</jfreechart-perfupdate.jar>
+        <jfxrt.jar>${basedir}/repo-javafx/jfxrt.jar</jfxrt.jar>
     </properties>
 
-    <!--
-        Uncomment this if Enterprise Edition is used.
-    -->
     <repositories>
         <repository>
             <id>Maven snapshots repository</id>
@@ -63,28 +80,259 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.ignite</groupId>
-            <artifactId>ignite-spark</artifactId>
+            <artifactId>ignite-yardstick</artifactId>
+            <scope>system</scope>
+            <systemPath>${ignite-yardstick.jar}</systemPath>
+            <version>0.1.0</version>
+       </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-core</artifactId>
+            <scope>system</scope>
+            <systemPath>${ignite.core.jar}</systemPath>
             <version>${ignite.version}</version>
+       </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-aws</artifactId>
+            <scope>system</scope>
+            <systemPath>${ignite.aws.jar}</systemPath>
+            <version>${ignite.version}</version>
+       </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-scalar</artifactId>
+            <scope>system</scope>
+            <systemPath>${ignite.scalar.jar}</systemPath>
+            <version>${ignite.version}</version>
+       </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-indexing</artifactId>
+            <scope>system</scope>
+            <systemPath>${ignite.indexing.jar}</systemPath>
+            <version>${ignite.version}</version>
+       </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-spark</artifactId>
+            <scope>system</scope>
+            <systemPath>${ignite.spark.jar}</systemPath>
+            <version>${ignite.version}</version>
+       </dependency>
+        <!--<dependency>-->
+            <!--<groupId>net.java.openjfx.backport</groupId>-->
+            <!--<artifactId>openjfx-78-backport</artifactId>-->
+            <!--<version>1.8.0-ea-b96.1</version>-->
+        <!--</dependency>-->
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>javafx</artifactId>
+            <version>2.2</version>
+            <systemPath>${jfxrt.jar}</systemPath>
+            <scope>system</scope>
         </dependency>
+            <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk</artifactId>
+            <version>1.3.21.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.databricks</groupId>
+            <artifactId>spark-csv_${scala.version}</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+
+        <dependency>
+              <groupId>javax.cache</groupId>
+              <artifactId>cache-api</artifactId>
+              <version>1.0.0</version>
+        </dependency>
+         <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
+            <version>1.32</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jcommon</artifactId>
+            <version>1.0.21</version>
+        </dependency>
+
+        <!--<dependency>-->
+            <!--<groupId>org.jfree</groupId>-->
+            <!--<artifactId>jfreechart</artifactId>-->
+            <!--<version>1.0.17</version>-->
+        <!--</dependency>-->
+
+         <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.15</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0-rc1</version>
+        </dependency>
+
+        <!--<dependency>-->
+            <!--<groupId>org.apache.ignite</groupId>-->
+            <!--<artifactId>ignite-spark</artifactId>-->
+            <!--<version>${ignite.snapshot.version}</version>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>org.yardstickframework</groupId>
             <artifactId>yardstick</artifactId>
             <version>${yardstick.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.binary.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_${scala.version}</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_${scala.version}</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+	<dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-hive_${scala.version}</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_${scala.version}</artifactId>
+            <version>2.2.2</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-library</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring.handlers</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/spring.schemas</resource>
+                </transformer>
+              </transformers>
+              <artifactSet>
+                <excludes>
+                    <exclude>org.apache.spark:*</exclude>
+                </excludes>
+                </artifactSet>
+                <filters>
+                <filter>
+                  <artifact>*.*</artifact>
+                  <!--<includes>-->
+                    <!--<include>org/apache/ignite/**</include>-->
+                  <!--</includes>-->
+                  <excludes>
+                    <!-- <exclude>org.scala-lang:*</exclude> -->
+                        <exclude>classworlds:classworlds</exclude>
+                        <exclude>junit:junit</exclude>
+                        <exclude>jmock:*</exclude>
+                        <exclude>*:xml-apis</exclude>
+                        <exclude>org.apache.maven:lib:tests</exclude>
+                        <exclude>log4j:log4j:jar:</exclude>
+                        <exclude>META-INF/*.SF</exclude>
+                        <exclude>META-INF/*.DSA</exclude>
+                        <exclude>META-INF/*.RSA</exclude>
+                        <exclude>META-INF/ECLIPSE*</exclude>
+                        <exclude>META-INF/license/*</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <minimizeJar>false</minimizeJar>
+            </configuration>
+          </execution>
+       </executions>
+      </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-install-plugin</artifactId>
+          <executions>
+          </executions>
+        </plugin>
+            <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <configuration>
+            <archive>
+              <manifest>
+                  <mainClass>org.yardstick.spark.SparkCoreRDDBenchmark</mainClass>
+              </manifest>
+            </archive>
+            <descriptorRefs>
+              <descriptorRef>jar-with-dependencies</descriptorRef>
+            </descriptorRefs>
+          </configuration>
+        </plugin>
+            <plugin>
+                <version>3.2.1</version>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <scalaCompatVersion>${scala.version}</scalaCompatVersion>
+                    <scalaVersion>${scala.binary.version}</scalaVersion>
+                    <jvmArgs>
+                        <jvmArg>-Xms512m</jvmArg>
+                        <jvmArg>-Xmx1024m</jvmArg>
+                    </jvmArgs>
+                  <recompileMode>incremental</recompileMode>
+                  <javacArgs>
+                    <javacArg>-source</javacArg><javacArg>${java.build.version}</javacArg>
+                    <javacArg>-target</javacArg><javacArg>${java.build.version}</javacArg>
+                  </javacArgs>
+              </configuration>
+            </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.2</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>${java.build.version}</source>
+                    <target>${java.build.version}</target>
                 </configuration>
             </plugin>
-
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>2.8</version>

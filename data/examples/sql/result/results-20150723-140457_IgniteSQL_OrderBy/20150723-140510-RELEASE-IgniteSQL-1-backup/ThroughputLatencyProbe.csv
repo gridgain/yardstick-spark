@@ -1,0 +1,15 @@
+--Probe dump file for probe: org.yardstickframework.probes.ThroughputLatencyProbe@997fc4 (class org.yardstickframework.probes.ThroughputLatencyProbe)
+--Created Thu Jul 23 14:05:10 IST 2015
+--Benchmark config: BenchmarkConfiguration [driverNames='[SparkIgniteSqlBenchmark]', serverName='IgniteNode', threads=64, duration=10, warmup=60, dfltProbeClsNames=[ThroughputLatencyProbe, PercentileProbe, DStatProbe, VmStatProbe], propsFileName='config/benchmark-IgniteSQL.properties', packages=[org.yardstickframework, org.yardstickframework.ignite, org.yardstickframework.spark, org.apache.ignite.yardstick], cmdArgs=[--outputFolder, results-20150723-140457, -cfg, /mnt/thirdeye/yardstick-spark/config/ignite-localhost-config.xml, -nn, 3, -b, 1, -w, 60, -d, 10, -t, 64, -sm, PRIMARY_SYNC, -dn, SparkIgniteSqlBenchmark, -cn, atomic, -sn, IgniteNode, -ds, RELEASE--IgniteSQL-1-backup, --config, config/benchmark-IgniteSQL.properties], probeWriter='null', customProps={BENCHMARK_PACKAGES=org.yardstickframework,org.yardstickframework.ignite,org.yardstickframework.spark,org.apache.ignite.yardstick, DRIVER_HOSTS=localhost, RESTART_SERVERS=true, CONFIGS="-cfg /mnt/thirdeye/yardstick-spark/config/ignite-localhost-config.xml -nn ${nodesNum} -b 1 -w 60 -d 10 -t 64 -sm PRIMARY_SYNC -dn SparkIgniteSqlBenchmark -cn atomic -sn IgniteNode -ds ${ver}-IgniteSQL-1-backup", JVM_OPTS=${JVM_OPTS}" -Xloggc:./gc.log -XX:+PrintGCDetails -verbose:gc -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+UseTLAB -XX:NewSize=128m -XX:MaxNewSize=128m -XX:MaxTenuringThreshold=0 -XX:SurvivorRatio=1024 -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=60 ", nodesNum=$((`echo ${SERVER_HOSTS} | tr ',' '' | wc -l` + `echo ${DRIVER_HOSTS} | tr ',' '' | wc -l`)), ver="RELEASE-", SERVER_HOSTS=localhost,localhost}, shutdownHook=true, outputFolder=results-20150723-140457, outputWriter=java.io.PrintStream@87dabe, errorWriter=java.io.PrintStream@12a1f67, descriptions=[RELEASE--IgniteSQL-1-backup], hostName=]
+--Description: RELEASE--IgniteSQL-1-backup
+@@SparkIgniteSqlBenchmark
+**"Time, sec","Operations/sec (more is better)","Latency, nsec (less is better)"
+1437640574,25.00,3841099714.96
+1437640575,0.00,0.00
+1437640576,0.00,0.00
+1437640577,20.00,2940366911.30
+1437640578,31.00,3783491944.94
+1437640579,13.00,4487705123.08
+1437640580,0.00,0.00
+1437640581,15.00,4166489141.47
+1437640582,30.00,4218003677.33
